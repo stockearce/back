@@ -1,0 +1,173 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>Gestión de Ventas - Sistema Amarce</title>
+</head>
+<body class="bg-light">
+
+<div class="container mt-4">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📋 Gestión de Ventas</h2>
+        <div>
+            <a href="{% url 'lista_ventas' %}" class="btn btn-outline-secondary">Todas las Ventas</a>
+            <a href="{% url 'home' %}" class="btn btn-secondary">Inicio</a>
+        </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="card p-3 mb-4 shadow-sm border-0">
+        <form method="GET" class="row g-2 align-items-end">
+
+            <div class="col-md-5">
+                <label class="form-label">Cliente</label>
+                <select name="cliente" class="form-select">
+                    <option value="">Todos los clientes</option>
+                    {% for c in clientes %}
+                        <option value="{{ c.id }}" {% if cliente_id == c.id|stringformat:"s" %}selected{% endif %}>
+                            {{ c.nombre_completo }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Fecha</label>
+                <input type="date" name="fecha" class="form-control" value="{{ fecha }}">
+            </div>
+
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-dark w-100">Filtrar</button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- VENTAS PENDIENTES -->
+    {% if ventas_pendientes %}
+    <div class="card mb-4 shadow-sm border-danger">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">⚠️ Ventas Pendientes ({{ ventas_pendientes.count }})</h5>
+        </div>
+
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Productos</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venta in ventas_pendientes %}
+                    <tr>
+                        <td><strong>#{{ venta.id }}</strong></td>
+                        <td>{{ venta.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <strong>{{ venta.cliente.nombre_completo }}</strong>
+                            {% if venta.cliente.nombre_local %}
+                                <br><small class="text-muted">{{ venta.cliente.nombre_local }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>
+                                {% for detalle in venta.detalles.all %}
+                                    {{ detalle.cantidad }}x {{ detalle.producto.nombre }}
+                                    {% if not forloop.last %}<br>{% endif %}
+                                {% endfor %}
+                            </small>
+                        </td>
+                        <td><strong>${{ venta.valor_total }}</strong></td>
+                        <td>
+                            <a href="{% url 'detalle_venta' venta.id %}" 
+                               class="btn btn-sm btn-outline-primary">
+                               Ver
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- VENTAS CONFIRMADAS -->
+    {% if ventas_confirmadas %}
+    <div class="card mb-4 shadow-sm border-warning">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0">📋 Ventas Confirmadas ({{ ventas_confirmadas.count }})</h5>
+        </div>
+
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Productos</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venta in ventas_confirmadas %}
+                    <tr>
+                        <td><strong>#{{ venta.id }}</strong></td>
+                        <td>{{ venta.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <strong>{{ venta.cliente.nombre_completo }}</strong>
+                            {% if venta.cliente.nombre_local %}
+                                <br><small class="text-muted">{{ venta.cliente.nombre_local }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>
+                                {% for detalle in venta.detalles.all %}
+                                    {{ detalle.cantidad }}x {{ detalle.producto.nombre }}
+                                    {% if not forloop.last %}<br>{% endif %}
+                                {% endfor %}
+                            </small>
+                        </td>
+                        <td><strong>${{ venta.valor_total }}</strong></td>
+                        <td>
+                            <a href="{% url 'detalle_venta' venta.id %}" 
+                               class="btn btn-sm btn-outline-primary">
+                               Ver
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- SIN VENTAS -->
+    {% if not ventas_pendientes and not ventas_confirmadas %}
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <h5>No hay ventas pendientes ni confirmadas</h5>
+            <a href="{% url 'lista_ventas' %}" class="btn btn-primary mt-3">
+                Ver Todas las Ventas
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>

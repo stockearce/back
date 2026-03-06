@@ -1,0 +1,86 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asignar Chofer - Venta #{{ venta.id }}</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-warning">
+                        <h4 class="mb-0">🚚 Asignar Chofer y Programar Envío</h4>
+                        <small>Venta #{{ venta.id }} - {{ venta.cliente.nombre_completo }}</small>
+                    </div>
+                    <div class="card-body">
+                        {% if messages %}
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <!-- Información actual -->
+                        <div class="alert alert-secondary">
+                            <strong>Estado actual:</strong> {{ venta.get_estado_display }}<br>
+                            <strong>Total:</strong> ${{ venta.valor_total }}<br>
+                            {% if venta.chofer %}
+                            <strong>Chofer asignado:</strong> {{ venta.chofer.nombre_completo }}<br>
+                            {% else %}
+                            <strong>Chofer:</strong> <span class="text-muted">Sin asignar</span><br>
+                            {% endif %}
+                            {% if venta.fecha_envio_programada %}
+                            <strong>Programado para:</strong> {{ venta.fecha_envio_programada }} {{ venta.hora_envio_programada|default:"" }}
+                            {% endif %}
+                        </div>
+
+                        <form method="POST">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Chofer</label>
+                                <select name="chofer" class="form-select">
+                                    <option value="">Sin asignar</option>
+                                    {% for chofer in choferes %}
+                                    <option value="{{ chofer.id }}" {% if venta.chofer_id == chofer.id %}selected{% endif %}>
+                                        {{ chofer.nombre_completo }} - {{ chofer.vehiculo }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Fecha Programada</label>
+                                    <input type="date" name="fecha_envio_programada" class="form-control" 
+                                           value="{{ venta.fecha_envio_programada|date:'Y-m-d' }}" 
+                                           min="{{ fecha_hoy }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Hora Programada</label>
+                                    <input type="time" name="hora_envio_programada" class="form-control" 
+                                           value="{{ venta.hora_envio_programada|time:'H:i' }}">
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-warning">Guardar Cambios</button>
+                                <a href="{% url 'detalle_venta' venta.id %}" class="btn btn-secondary">Cancelar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,410 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrega #{{ venta.id }}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            color: #222;
+        }
+
+        /* ── HEADER ── */
+        .top-bar {
+            background: #2c2c2c;
+            color: white;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .top-bar .titulo {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .btn-volver {
+            background: #F5C518;
+            color: #2c2c2c;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 700;
+            font-size: 14px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ── BADGE ESTADO ── */
+        .estado-badge {
+            display: block;
+            text-align: center;
+            padding: 10px;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            border-radius: 0;
+        }
+        .estado-confirmada { background: #fff3cd; color: #856404; }
+        .estado-enviada    { background: #cff4fc; color: #055160; }
+        .estado-entregada  { background: #d1e7dd; color: #0a3622; }
+        .estado-cancelada  { background: #f8d7da; color: #842029; }
+
+        /* ── PÁGINA ── */
+        .page { max-width: 600px; margin: 0 auto; padding: 16px; }
+
+        /* ── TARJETA CLIENTE (grande, fácil de leer) ── */
+        .card-cliente {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .card-cliente .seccion-titulo {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 12px;
+        }
+        .dato-grande {
+            font-size: 22px;
+            font-weight: 800;
+            color: #2c2c2c;
+            margin-bottom: 6px;
+            line-height: 1.2;
+        }
+        .direccion-grande {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a6fcf;
+            background: #e8f0fe;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin: 10px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .direccion-grande .icono { font-size: 22px; flex-shrink: 0; }
+
+        .dato-fila {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 15px;
+        }
+        .dato-fila:last-child { border-bottom: none; }
+        .dato-fila .label { color: #888; font-size: 13px; }
+        .dato-fila .valor { font-weight: 600; }
+
+        /* ── PRODUCTOS ── */
+        .card-productos {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .producto-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            gap: 10px;
+        }
+        .producto-item:last-child { border-bottom: none; }
+        .producto-nombre {
+            font-size: 15px;
+            font-weight: 600;
+            flex: 1;
+        }
+        .producto-cant {
+            background: #2c2c2c;
+            color: white;
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-weight: 700;
+            font-size: 15px;
+            white-space: nowrap;
+        }
+        .producto-subtotal {
+            font-weight: 700;
+            color: #2c2c2c;
+            font-size: 15px;
+            white-space: nowrap;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        /* ── TOTAL ── */
+        .total-box {
+            background: #F5C518;
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+        }
+        .total-box .label { font-size: 14px; font-weight: 700; color: #2c2c2c; }
+        .total-box .monto { font-size: 26px; font-weight: 900; color: #2c2c2c; }
+
+        /* ── NOTAS ── */
+        .nota-box {
+            background: #fff8e1;
+            border-left: 5px solid #F5C518;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .nota-box strong { display: block; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #888; }
+
+        /* ── FORMULARIO ACCIÓN ── */
+        .card-accion {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .card-accion .seccion-titulo {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 16px;
+        }
+
+        .select-grande {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            color: #2c2c2c;
+            font-weight: 600;
+            margin-bottom: 14px;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%23888' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 20px;
+        }
+        .select-grande:focus {
+            outline: none;
+            border-color: #F5C518;
+        }
+
+        .textarea-grande {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            resize: none;
+            font-family: inherit;
+            color: #2c2c2c;
+            margin-bottom: 14px;
+        }
+        .textarea-grande:focus {
+            outline: none;
+            border-color: #F5C518;
+        }
+
+        .field-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #555;
+            margin-bottom: 8px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        /* ── BOTONES DE ACCIÓN ── */
+        .btn-enviada {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: 800;
+            border: none;
+            border-radius: 14px;
+            background: #F5C518;
+            color: #2c2c2c;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 14px rgba(245,197,24,0.4);
+        }
+        .btn-enviada:active { transform: scale(0.98); }
+
+        .btn-entregada {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: 800;
+            border: none;
+            border-radius: 14px;
+            background: #198754;
+            color: white;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 14px rgba(25,135,84,0.35);
+        }
+        .btn-entregada:active { transform: scale(0.98); }
+
+        /* ── ESTADO FINAL ── */
+        .estado-final {
+            background: white;
+            border-radius: 16px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 14px;
+        }
+        .estado-final .icono-grande { font-size: 56px; margin-bottom: 12px; }
+        .estado-final .texto { font-size: 18px; font-weight: 700; color: #555; }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <div class="top-bar">
+        <div class="titulo">🚚 Entrega #{{ venta.id }}</div>
+        <a href="{% url 'panel_chofer' %}" class="btn-volver">← Volver</a>
+    </div>
+
+    <!-- ESTADO VISIBLE ARRIBA -->
+    <div class="estado-badge estado-{{ venta.estado }}">
+        {% if venta.estado == 'confirmada' %}⏳{% elif venta.estado == 'enviada' %}🚚{% elif venta.estado == 'entregada' %}✅{% else %}❌{% endif %}
+        {{ venta.get_estado_display|upper }}
+    </div>
+
+    <div class="page">
+
+        <!-- DATOS DEL CLIENTE -->
+        <div class="card-cliente">
+            <div class="seccion-titulo">📍 Destino</div>
+
+            <div class="dato-grande">{{ venta.cliente.nombre_completo }}</div>
+
+            <a href="https://www.google.com/maps/search/?api=1&query={{ venta.cliente.direccion|urlencode }}"
+               target="_blank" style="text-decoration:none;">
+                <div class="direccion-grande">
+                    <span class="icono">📌</span>
+                    <span>{{ venta.cliente.direccion|default:"Sin dirección" }}</span>
+                </div>
+            </a>
+
+            <div class="dato-fila">
+                <span class="label">Fecha programada</span>
+                <span class="valor">{{ venta.fecha_envio_programada|default:"—" }}</span>
+            </div>
+            <div class="dato-fila">
+                <span class="label">Hora estimada</span>
+                <span class="valor">{{ venta.hora_envio_programada|default:"—" }}</span>
+            </div>
+        </div>
+
+        <!-- NOTAS (si hay) -->
+        {% if venta.notas %}
+        <div class="nota-box">
+            <strong>⚠️ Notas importantes</strong>
+            {{ venta.notas }}
+        </div>
+        {% endif %}
+
+        <!-- PRODUCTOS -->
+        <div class="card-productos">
+            <div class="seccion-titulo">📦 Productos a entregar</div>
+
+            {% for detalle in detalles %}
+            <div class="producto-item">
+                <span class="producto-nombre">{{ detalle.producto.nombre }}</span>
+                <span class="producto-cant">x{{ detalle.cantidad }}</span>
+                <span class="producto-subtotal">${{ detalle.subtotal }}</span>
+            </div>
+            {% endfor %}
+
+            <div class="total-box">
+                <span class="label">💰 TOTAL A COBRAR</span>
+                <span class="monto">${{ venta.valor_total }}</span>
+            </div>
+        </div>
+
+        <!-- ACCIÓN -->
+        {% if venta.estado == 'confirmada' or venta.estado == 'enviada' %}
+        <div class="card-accion">
+            <div class="seccion-titulo">🔄 Actualizar entrega</div>
+            <form method="POST">
+                {% csrf_token %}
+
+                {% if venta.estado == 'confirmada' %}
+                    <input type="hidden" name="estado" value="enviada">
+                {% elif venta.estado == 'enviada' %}
+                    <input type="hidden" name="estado" value="entregada">
+                {% endif %}
+
+                <label class="field-label">💳 Método de pago</label>
+                <select name="metodo_pago" class="select-grande" required>
+                    {% for valor, etiqueta in metodos_pago %}
+                    <option value="{{ valor }}" {% if venta.metodo_pago == valor %}selected{% endif %}>
+                        {{ etiqueta }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <label class="field-label">💬 Comentario (opcional)</label>
+                <textarea name="notas_adicionales" class="textarea-grande" rows="3"
+                    placeholder="Ej: No había nadie, dejé con vecino..."></textarea>
+
+                {% if venta.estado == 'confirmada' %}
+                <button type="submit" class="btn-enviada">
+                    🚚 YA SALÍ A ENTREGAR
+                </button>
+                {% elif venta.estado == 'enviada' %}
+                <button type="submit" class="btn-entregada">
+                    ✅ ENTREGA COMPLETADA
+                </button>
+                {% endif %}
+
+            </form>
+        </div>
+
+        {% else %}
+        <div class="estado-final">
+            {% if venta.estado == 'entregada' %}
+                <div class="icono-grande">✅</div>
+                <div class="texto">Esta entrega fue completada exitosamente.</div>
+            {% else %}
+                <div class="icono-grande">❌</div>
+                <div class="texto">Esta venta fue cancelada.</div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+
+</body>
+</html>

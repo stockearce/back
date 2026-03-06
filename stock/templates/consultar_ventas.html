@@ -1,0 +1,797 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Consulta de Ventas | Stockearce</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
+  
+  <style>
+    :root {
+      /* ── PALETA STOCKEARCE ── */
+      --amarillo: #F5C518;
+      --amarillo-hover: #e0b415;
+      --amarillo-claro: #fffbea;
+      --amarillo-suave: rgba(245, 197, 24, 0.1);
+      
+      --gris-oscuro: #2c2c2c;
+      --gris-medio: #666;
+      --gris-claro: #f5f5f5;
+      --gris-fondo: #e8e8e8;
+      
+      --exito: #10b981;
+      --peligro: #ef4444;
+      --info: #3b82f6;
+      --warning: #f59e0b;
+      
+      --sombra-sm: 0 4px 15px rgba(0,0,0,0.05);
+      --sombra-md: 0 6px 28px rgba(0,0,0,0.10);
+      --sombra-lg: 0 10px 30px rgba(0,0,0,0.12);
+      
+      --radio: 15px;
+      --radio-lg: 18px;
+      
+      --transicion: all 0.2s ease-in-out;
+    }
+
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    
+    body{
+      font-family:'Barlow',sans-serif;
+      background:var(--gris-fondo);
+      color:var(--gris-oscuro);
+      min-height:100vh;
+      font-size:14px;
+      padding-bottom:40px;
+    }
+
+    /* ==================== TOPBAR ==================== */
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:100;
+      background:white;
+      border-bottom:4px solid var(--amarillo);
+      padding:0 2rem;
+      height:70px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      box-shadow:var(--sombra-md);
+    }
+    
+    .topbar-left{
+      display:flex;
+      align-items:center;
+      gap:1rem;
+    }
+    
+    .logo-dot{
+      width:48px;
+      height:48px;
+      background:var(--gris-oscuro);
+      border:3px solid var(--amarillo);
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:20px;
+      font-weight:800;
+      color:var(--amarillo);
+      flex-shrink:0;
+    }
+    
+    .topbar h1{
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:1.5rem;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:0.5px;
+      color:var(--gris-oscuro);
+    }
+    
+    .topbar h1 em{
+      font-style:normal;
+      color:var(--amarillo);
+    }
+    
+    .count-badge{
+      background:var(--amarillo);
+      color:var(--gris-oscuro);
+      font-family:'Barlow',sans-serif;
+      font-size:.85rem;
+      font-weight:800;
+      padding:.4rem 1rem;
+      border-radius:99px;
+      letter-spacing:.5px;
+    }
+
+    /* Botón volver */
+    .btn-volver{
+      background:transparent;
+      color:var(--gris-medio);
+      border:2px solid var(--gris-claro);
+      padding:.5rem 1.2rem;
+      border-radius:10px;
+      font-family:'Barlow',sans-serif;
+      font-weight:700;
+      font-size:.85rem;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      gap:.5rem;
+      transition:var(--transicion);
+      margin-right:1rem;
+    }
+    
+    .btn-volver:hover{
+      border-color:var(--gris-oscuro);
+      color:var(--gris-oscuro);
+      transform:translateY(-2px);
+    }
+
+    /* ==================== SUMMARY CARDS ==================== */
+    .summary{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:20px;
+      padding:24px 2rem;
+      background:transparent;
+    }
+    
+    .s-card{
+      background:white;
+      border-radius:var(--radio-lg);
+      padding:1.5rem;
+      display:flex;
+      flex-direction:column;
+      gap:.6rem;
+      transition:var(--transicion);
+      box-shadow:var(--sombra-sm);
+      border-left:5px solid var(--amarillo);
+      position:relative;
+      overflow:hidden;
+    }
+    
+    .s-card:hover{
+      transform:translateY(-4px);
+      box-shadow:var(--sombra-lg);
+    }
+    
+    .s-card.green{border-left-color:var(--exito);}
+    .s-card.yellow{border-left-color:var(--amarillo);}
+    .s-card.blue{border-left-color:var(--info);}
+    .s-card.purple{border-left-color:#8b5cf6;}
+    .s-card.red{border-left-color:var(--peligro);}
+    
+    .s-label{
+      font-size:.75rem;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      color:var(--gris-medio);
+    }
+    
+    .s-val{
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:2rem;
+      font-weight:800;
+      line-height:1;
+      color:var(--gris-oscuro);
+    }
+    
+    .s-card.green .s-val{color:var(--exito);}
+    .s-card.yellow .s-val{color:var(--amarillo);}
+    .s-card.blue .s-val{color:var(--info);}
+    .s-card.purple .s-val{color:#8b5cf6;}
+    .s-card.red .s-val{color:var(--peligro);}
+    
+    .s-sub{
+      font-size:.8rem;
+      color:var(--gris-medio);
+    }
+
+    /* ==================== FILTERS BAR ==================== */
+    .filters-bar{
+      background:white;
+      border-radius:var(--radio-lg);
+      margin:0 2rem 24px;
+      padding:1.5rem;
+      display:flex;
+      gap:1rem;
+      align-items:flex-end;
+      flex-wrap:wrap;
+      box-shadow:var(--sombra-sm);
+    }
+    
+    .f-group{
+      display:flex;
+      flex-direction:column;
+      gap:.4rem;
+      flex:1;
+      min-width:160px;
+    }
+    
+    .f-group label{
+      font-size:.75rem;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      color:var(--gris-medio);
+    }
+    
+    .f-group select,.f-group input{
+      background:var(--gris-claro);
+      border:2px solid var(--gris-claro);
+      color:var(--gris-oscuro);
+      padding:.75rem 1rem;
+      border-radius:12px;
+      font-family:'Barlow',sans-serif;
+      font-size:.9rem;
+      font-weight:600;
+      outline:none;
+      transition:var(--transicion);
+      cursor:pointer;
+    }
+    
+    .f-group select:focus,.f-group input:focus{
+      border-color:var(--amarillo);
+      box-shadow:0 0 0 4px var(--amarillo-suave);
+    }
+    
+    .btn-apply{
+      background:var(--gris-oscuro);
+      color:var(--amarillo);
+      border:none;
+      padding:.75rem 1.5rem;
+      border-radius:12px;
+      font-family:'Barlow',sans-serif;
+      font-weight:700;
+      font-size:.9rem;
+      cursor:pointer;
+      transition:var(--transicion);
+      text-transform:uppercase;
+      letter-spacing:.5px;
+    }
+    
+    .btn-apply:hover{
+      background:var(--amarillo);
+      color:var(--gris-oscuro);
+      transform:translateY(-2px);
+      box-shadow:var(--sombra-md);
+    }
+    
+    .btn-reset{
+      background:transparent;
+      color:var(--peligro);
+      border:2px solid var(--peligro);
+      padding:.75rem 1.2rem;
+      border-radius:12px;
+      font-family:'Barlow',sans-serif;
+      font-weight:700;
+      font-size:.9rem;
+      cursor:pointer;
+      transition:var(--transicion);
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    
+    .btn-reset:hover{
+      background:var(--peligro);
+      color:white;
+      transform:translateY(-2px);
+    }
+    
+    .btn-export{
+      background:var(--exito);
+      color:white;
+      border:none;
+      padding:.75rem 1.5rem;
+      border-radius:12px;
+      font-family:'Barlow',sans-serif;
+      font-weight:700;
+      font-size:.9rem;
+      cursor:pointer;
+      transition:var(--transicion);
+      display:inline-flex;
+      align-items:center;
+      gap:.5rem;
+    }
+    
+    .btn-export:hover{
+      background:#059669;
+      transform:translateY(-2px);
+      box-shadow:var(--sombra-md);
+    }
+
+    /* ==================== MAIN TABLE ==================== */
+    .main{padding:0 2rem 2rem}
+    
+    .tbl-wrap{
+      border-radius:var(--radio-lg);
+      overflow:hidden;
+      overflow-x:auto;
+      background:white;
+      box-shadow:var(--sombra-md);
+    }
+    
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:1100px;
+    }
+    
+    thead{
+      background:var(--gris-oscuro);
+    }
+    
+    thead th{
+      padding:1rem;
+      text-align:left;
+      font-size:.75rem;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      color:var(--amarillo);
+      white-space:nowrap;
+    }
+    
+    tbody tr{
+      border-bottom:1px solid var(--gris-claro);
+      transition:background .15s;
+    }
+    
+    tbody tr:last-child{border-bottom:none;}
+    
+    tbody tr:hover{background:var(--amarillo-claro);}
+    
+    tbody td{
+      padding:1rem;
+      vertical-align:top;
+    }
+
+    .mono{
+      font-family:'Barlow',sans-serif;
+      font-size:.85rem;
+      font-weight:600;
+    }
+    
+    .id-chip{
+      display:inline-block;
+      background:var(--amarillo);
+      color:var(--gris-oscuro);
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:.8rem;
+      font-weight:800;
+      padding:.25rem .75rem;
+      border-radius:8px;
+    }
+    
+    .client-name{
+      font-weight:700;
+      font-size:1rem;
+      color:var(--gris-oscuro);
+    }
+    
+    .client-local{
+      font-size:.8rem;
+      color:var(--gris-medio);
+      margin-top:4px;
+      display:flex;
+      align-items:center;
+      gap:.3rem;
+    }
+    
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:.4rem;
+      padding:.4rem .8rem;
+      border-radius:99px;
+      font-size:.75rem;
+      font-weight:700;
+      white-space:nowrap;
+      text-transform:uppercase;
+      letter-spacing:.5px;
+    }
+    
+    .badge i{
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background:currentColor;
+      flex-shrink:0;
+    }
+    
+    .b-pendiente{background:var(--amarillo-claro);color:#92400e;border:2px solid var(--amarillo);}
+    .b-confirmada{background:rgba(59,130,246,.1);color:var(--info);border:2px solid var(--info);}
+    .b-enviada{background:rgba(139,92,246,.1);color:#8b5cf6;border:2px solid #8b5cf6;}
+    .b-entregada{background:rgba(16,185,129,.1);color:var(--exito);border:2px solid var(--exito);}
+    .b-cancelada{background:rgba(244,63,94,.1);color:var(--peligro);border:2px solid var(--peligro);}
+    
+    .mpago{
+      background:var(--gris-claro);
+      color:var(--gris-oscuro);
+      border:2px solid var(--gris-claro);
+      padding:.4rem .8rem;
+      border-radius:8px;
+      font-size:.8rem;
+      font-weight:700;
+      white-space:nowrap;
+      text-transform:uppercase;
+    }
+    
+    .valor{
+      color:var(--exito);
+      font-family:'Barlow Condensed',sans-serif;
+      font-weight:800;
+      font-size:1.1rem;
+    }
+    
+    .person{
+      font-size:.9rem;
+      display:flex;
+      align-items:center;
+      gap:.5rem;
+    }
+    
+    .avatar{
+      width:32px;
+      height:32px;
+      border-radius:50%;
+      background:var(--gris-oscuro);
+      border:2px solid var(--amarillo);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:.75rem;
+      font-weight:800;
+      color:var(--amarillo);
+      flex-shrink:0;
+      text-transform:uppercase;
+    }
+    
+    .avatar.orange{
+      background:var(--amarillo);
+      color:var(--gris-oscuro);
+      border-color:var(--gris-oscuro);
+    }
+    
+    .dash{color:var(--gris-medio);font-size:.85rem;}
+
+    .productos-cell{
+      display:flex;
+      flex-direction:column;
+      gap:.5rem;
+      min-width:200px;
+    }
+    
+    .prod-item{
+      display:flex;
+      align-items:center;
+      gap:.6rem;
+      background:var(--gris-claro);
+      border-radius:10px;
+      padding:.5rem .75rem;
+      transition:var(--transicion);
+    }
+    
+    .prod-item:hover{
+      background:var(--amarillo-claro);
+      transform:translateX(4px);
+    }
+    
+    .prod-qty{
+      background:var(--gris-oscuro);
+      color:var(--amarillo);
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:.75rem;
+      font-weight:800;
+      padding:.2rem .5rem;
+      border-radius:6px;
+      flex-shrink:0;
+      min-width:28px;
+      text-align:center;
+    }
+    
+    .prod-name{
+      font-size:.85rem;
+      font-weight:600;
+      color:var(--gris-oscuro);
+      flex:1;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:160px;
+    }
+    
+    .prod-price{
+      font-size:.8rem;
+      color:var(--gris-medio);
+      flex-shrink:0;
+    }
+    
+    .prod-subtotal{
+      font-family:'Barlo Condensed',sans-serif;
+      font-size:.85rem;
+      font-weight:700;
+      color:var(--exito);
+      flex-shrink:0;
+    }
+    
+    .prod-more{
+      font-size:.8rem;
+      color:var(--gris-medio);
+      text-align:center;
+      padding:.3rem 0;
+      font-weight:600;
+    }
+    
+    .nota-inline{
+      margin-top:.5rem;
+      background:var(--amarillo-claro);
+      border-left:4px solid var(--amarillo);
+      border-radius:0 10px 10px 0;
+      padding:.5rem .75rem;
+      font-size:.8rem;
+      color:var(--gris-medio);
+      font-style:italic;
+      max-width:320px;
+    }
+
+    .empty{
+      text-align:center;
+      padding:4rem 2rem;
+      color:var(--gris-medio);
+      background:white;
+    }
+    
+    .empty-icon{
+      font-size:3rem;
+      margin-bottom:1rem;
+      opacity:.5;
+    }
+    
+    .empty p{
+      font-size:1.1rem;
+      font-weight:700;
+      color:var(--gris-oscuro);
+      margin-bottom:.5rem;
+    }
+    
+    .empty small{
+      display:block;
+      font-size:.9rem;
+      color:var(--gris-medio);
+    }
+
+    ::-webkit-scrollbar{width:8px;height:8px}
+    ::-webkit-scrollbar-track{background:var(--gris-fondo)}
+    ::-webkit-scrollbar-thumb{background:var(--gris-medio);border-radius:99px}
+    ::-webkit-scrollbar-thumb:hover{background:var(--gris-oscuro)}
+    
+    @media(max-width:1200px){
+      .summary{grid-template-columns:repeat(3,1fr);}
+    }
+    
+    @media(max-width:900px){
+      .summary{grid-template-columns:repeat(2,1fr);padding:20px;}
+      .topbar,.filters-bar,.main{padding-left:1rem;padding-right:1rem;}
+      .filters-bar{margin:0 1rem 20px;}
+    }
+    
+    @media(max-width:768px){
+      .summary{grid-template-columns:1fr;}
+      .topbar{height:auto;padding:1rem;flex-direction:column;gap:1rem;}
+      .topbar h1{font-size:1.2rem;}
+      .filters-bar{flex-direction:column;align-items:stretch;}
+      .f-group{width:100%;}
+      .btn-apply,.btn-reset,.btn-export{width:100%;justify-content:center;}
+      .btn-volver{margin-right:0;margin-bottom:.5rem;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="{% url 'home' %}" class="btn-volver">← Volver</a>
+    <div class="logo-dot">📊</div>
+    <h1>Consulta de <em>Ventas</em></h1>
+  </div>
+  <span class="count-badge">{{ ventas|length }} resultado{{ ventas|length|pluralize }}</span>
+</div>
+
+<div class="summary">
+  <div class="s-card green">
+    <span class="s-label">Total Ventas</span>
+    <span class="s-val">{{ total_ventas }}</span>
+    <span class="s-sub">Registros en el sistema</span>
+  </div>
+  <div class="s-card yellow">
+    <span class="s-label">Monto Total</span>
+    <span class="s-val">${{ monto_total|floatformat:0 }}</span>
+    <span class="s-sub">Suma de todos los pedidos</span>
+  </div>
+  <div class="s-card blue">
+    <span class="s-label">Pendientes</span>
+    <span class="s-val">{{ total_pendientes }}</span>
+    <span class="s-sub">Esperando confirmación</span>
+  </div>
+  <div class="s-card purple">
+    <span class="s-label">Enviadas</span>
+    <span class="s-val">{{ total_enviadas }}</span>
+    <span class="s-sub">Stock ya descontado</span>
+  </div>
+  <div class="s-card red">
+    <span class="s-label">Canceladas</span>
+    <span class="s-val">{{ total_canceladas }}</span>
+    <span class="s-sub">Ventas anuladas</span>
+  </div>
+</div>
+
+<form method="GET" action="">
+  <div class="filters-bar">
+
+    <div class="f-group">
+      <label>Fecha envío desde</label>
+      <input type="date" name="fecha_desde" value="{{ fecha_desde }}"/>
+    </div>
+
+    <div class="f-group">
+      <label>Fecha envío hasta</label>
+      <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}"/>
+    </div>
+
+    <div class="f-group">
+      <label>Vendedor</label>
+      <select name="vendedor">
+        <option value="">Todos los vendedores</option>
+        {% for v in vendedores %}
+          <option value="{{ v.id }}" {% if vendedor_id == v.id|stringformat:"s" %}selected{% endif %}>
+            {{ v.get_full_name|default:v.username }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit" class="btn-apply">Filtrar</button>
+    <button type="submit" name="exportar" value="excel" class="btn-export">📥 Exportar Excel</button>
+    <a href="?" class="btn-reset">Limpiar</a>
+
+  </div>
+</form>
+
+<div class="main">
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>Productos</th>
+          <th>Estado</th>
+          <th>Método de Pago</th>
+          <th>Valor Total</th>
+          <th>Chofer</th>
+          <th>Vendedor</th>
+          <th>Fecha Creación</th>
+          <th>Envío Programado</th>
+          <th>Fecha Envío Real</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for venta in ventas %}
+        <tr>
+
+          <td><span class="id-chip">#{{ venta.id }}</span></td>
+
+          <td>
+            <div class="client-name">{{ venta.cliente.nombre_completo }}</div>
+            {% if venta.cliente.nombre_local %}
+              <div class="client-local">🏪 {{ venta.cliente.nombre_local }}</div>
+            {% endif %}
+          </td>
+
+          <td>
+            <div class="productos-cell">
+              {% for det in venta.detalles.all|slice:":4" %}
+                <div class="prod-item">
+                  <span class="prod-qty">×{{ det.cantidad }}</span>
+                  <span class="prod-name" title="{{ det.producto.nombre }}">{{ det.producto.nombre }}</span>
+                  <span class="prod-price">${{ det.precio_unitario|floatformat:0 }}</span>
+                  <span class="prod-subtotal">${{ det.subtotal|floatformat:0 }}</span>
+                </div>
+              {% empty %}
+                <span class="dash" style="font-size:.85rem">Sin productos</span>
+              {% endfor %}
+              {% with total_items=venta.detalles.count %}
+                {% if total_items > 4 %}
+                  <div class="prod-more">+{{ total_items|add:"-4" }} producto{{ total_items|add:"-4"|pluralize }} más</div>
+                {% endif %}
+              {% endwith %}
+              {% if venta.notas %}
+                <div class="nota-inline">📝 {{ venta.notas|truncatechars:80 }}</div>
+              {% endif %}
+            </div>
+          </td>
+
+          <td><span class="badge b-{{ venta.estado }}"><i></i>{{ venta.get_estado_display }}</span></td>
+
+          <td><span class="mpago">{{ venta.get_metodo_pago_display }}</span></td>
+
+          <td><span class="valor">${{ venta.valor_total|floatformat:2 }}</span></td>
+
+          <td>
+            {% if venta.chofer %}
+              <div class="person">
+                <div class="avatar orange">{{ venta.chofer.nombre_completo|slice:":2" }}</div>
+                <span>{{ venta.chofer.nombre_completo }}</span>
+              </div>
+            {% else %}
+              <span class="dash">Sin asignar</span>
+            {% endif %}
+          </td>
+
+          <td>
+            {% if venta.usuario_creador %}
+              <div class="person">
+                <div class="avatar">{{ venta.usuario_creador.username|slice:":2" }}</div>
+                <span>{{ venta.usuario_creador.get_full_name|default:venta.usuario_creador.username }}</span>
+              </div>
+            {% else %}
+              <span class="dash">—</span>
+            {% endif %}
+          </td>
+
+          <td class="mono">
+            {{ venta.fecha_creacion|date:"d/m/Y" }}<br>
+            <span style="color:var(--gris-medio);font-size:.8rem">{{ venta.fecha_creacion|date:"H:i" }}</span>
+          </td>
+
+          <td class="mono">
+            {% if venta.fecha_envio_programada %}
+              {{ venta.fecha_envio_programada|date:"d/m/Y" }}
+              {% if venta.hora_envio_programada %}
+                <br><span style="color:var(--gris-medio);font-size:.8rem">{{ venta.hora_envio_programada|time:"H:i" }}</span>
+              {% endif %}
+            {% else %}
+              <span class="dash">—</span>
+            {% endif %}
+          </td>
+
+          <td class="mono">
+            {% if venta.fecha_envio %}
+              <span style="color:var(--exito);font-weight:700">{{ venta.fecha_envio|date:"d/m/Y" }}</span><br>
+              <span style="color:var(--gris-medio);font-size:.8rem">{{ venta.fecha_envio|date:"H:i" }}</span>
+            {% else %}
+              <span class="dash">—</span>
+            {% endif %}
+          </td>
+
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="11">
+            <div class="empty">
+              <div class="empty-icon">📭</div>
+              <p>No se encontraron ventas.</p>
+              {% if fecha_desde or fecha_hasta %}
+                <small>No hay ventas con fecha de envío en ese rango.</small>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>

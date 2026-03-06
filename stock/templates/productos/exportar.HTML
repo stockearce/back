@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exportar Productos - Sistema Amarce</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<div class="container mt-5" style="max-width:580px;">
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header text-white fw-bold" style="background:#1B4332;">
+            ⬇️ Exportar Productos a Excel
+        </div>
+
+        <div class="card-body p-4">
+
+            {% for m in messages %}
+            <div class="alert alert-{{ m.tags }} alert-dismissible fade show" role="alert">
+                {{ m }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+
+            <div class="alert alert-success small">
+                <strong>📋 ¿Qué descargás?</strong>
+                <p class="mb-1 mt-1">Un archivo Excel con <strong>todos los productos</strong> del sistema con estas columnas:</p>
+                <table class="table table-sm table-bordered mb-0 mt-2">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Col</th>
+                            <th>Campo</th>
+                            <th>Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>A</code></td><td>ID</td><td>ID del producto en la base de datos</td></tr>
+                        <tr><td><code>B</code></td><td>NOMBRE</td><td>Nombre del producto</td></tr>
+                        <tr><td><code>C</code></td><td>TIPO</td><td>Categoría (TipoProducto)</td></tr>
+                        <tr><td><code>D</code></td><td>CANTIDAD</td><td>Stock actual</td></tr>
+                        <tr><td><code>E</code></td><td>VALOR_VENTA</td><td>Precio de venta</td></tr>
+                        <tr><td><code>F</code></td><td>VALOR_COMPRA</td><td>Precio de compra</td></tr>
+                        <tr><td><code>G</code></td><td>UMBRAL_ALERTA</td><td>Stock mínimo de alerta</td></tr>
+                    </tbody>
+                </table>
+                <p class="mb-0 mt-2 text-muted">
+                    💡 Podés editar este archivo y reimportarlo desde
+                    <a href="{% url 'importar_productos' %}">Importar Excel</a>.
+                </p>
+            </div>
+
+            <div class="d-grid gap-2">
+                <a href="{% url 'exportar_productos' %}" class="btn btn-success btn-lg">
+                    ⬇️ Descargar Excel ahora
+                </a>
+                <a href="{% url 'importar_productos' %}" class="btn btn-outline-primary">
+                    ⬆️ Importar Excel
+                </a>
+                <a href="{% url 'lista_productos' %}" class="btn btn-outline-secondary">
+                    ← Volver a productos
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

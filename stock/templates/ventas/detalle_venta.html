@@ -1,0 +1,552 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Detalle Venta #{{ venta.id }}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        :root {
+            --amarillo: #F5C518;
+            --gris-oscuro: #2c2c2c;
+            --gris-medio: #666;
+            --gris-claro: #f5f5f5;
+        }
+        body { font-family: 'Barlow', sans-serif; background: #e8e8e8; }
+        .logo-wrapper { display: flex; align-items: center; gap: 14px; }
+        .logo-carrito svg { width: 52px; height: 52px; }
+        .logo-texto .nombre { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 28px; line-height: 1; color: var(--gris-oscuro); letter-spacing: -0.5px; }
+        .logo-texto .nombre span { color: var(--amarillo); }
+        .logo-texto .sub { font-size: 10px; letter-spacing: 2px; color: var(--gris-medio); text-transform: uppercase; margin-top: 1px; }
+        .logo-texto .tag { font-size: 9px; letter-spacing: 0.5px; color: #aaa; }
+        .card-main { border: none; border-radius: 18px; box-shadow: 0 6px 28px rgba(0,0,0,0.10); overflow: hidden; }
+        .card-main .encabezado { background: var(--gris-oscuro); padding: 18px 26px; display: flex; justify-content: space-between; align-items: center; }
+        .card-main .encabezado h4 { color: white; margin: 0; font-weight: 700; }
+        .badge-pedido { background: var(--amarillo); color: var(--gris-oscuro); font-weight: 800; font-size: 14px; padding: 6px 18px; border-radius: 99px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+        .info-box { background: var(--gris-claro); border-radius: 10px; padding: 12px 16px; border-left: 4px solid var(--amarillo); }
+        .info-box label { display: block; font-size: 9.5px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--gris-medio); margin-bottom: 3px; }
+        .info-box span { font-size: 14px; font-weight: 600; color: var(--gris-oscuro); }
+        .total-pill { display: inline-block; background: var(--amarillo); color: var(--gris-oscuro); font-weight: 800; font-size: 24px; padding: 10px 22px; border-radius: 12px; }
+        .tabla-prod thead th { background: var(--gris-oscuro); color: var(--amarillo); font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; border: none; padding: 10px 14px; }
+        .tabla-prod tbody td { padding: 9px 14px; vertical-align: middle; font-size: 13px; border-color: #ebebeb; }
+        .tabla-prod tbody tr:hover { background: #fffbea; }
+        .fila-total { background: var(--amarillo) !important; font-weight: 800; font-size: 15px; }
+        .fila-total td { border: none !important; }
+        .btn-pdf { background: var(--gris-oscuro); color: var(--amarillo); border: none; border-radius: 10px; font-weight: 700; font-size: 15px; padding: 13px 0; transition: all .2s; letter-spacing: .3px; }
+        .btn-pdf:hover { background: var(--amarillo); color: var(--gris-oscuro); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(245,197,24,.35); }
+        .card-chofer { border: none; border-radius: 18px; box-shadow: 0 6px 28px rgba(0,0,0,0.10); overflow: hidden; }
+        .card-chofer .ch-header { background: var(--amarillo); padding: 16px 22px; }
+        .card-chofer .ch-header h5 { margin: 0; font-weight: 800; color: var(--gris-oscuro); }
+        .btn-confirmar { background: var(--gris-oscuro); color: var(--amarillo); border: none; border-radius: 10px; font-weight: 700; font-size: 14px; padding: 12px 0; width: 100%; }
+        .btn-confirmar:hover { opacity: .88; }
+        .pdf-loader { position: fixed; inset: 0; background: rgba(0,0,0,.65); display: none; align-items: center; justify-content: center; z-index: 9999; }
+        .pdf-loader.show { display: flex; }
+        .loader-box { background: white; padding: 38px 44px; border-radius: 20px; text-align: center; width: 300px; }
+        .spinner { width: 46px; height: 46px; border: 5px solid #eee; border-top: 5px solid var(--amarillo); border-radius: 50%; animation: spin .85s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+<div class="container py-4" style="max-width:980px;">
+
+    <!-- BOTÓN VOLVER -->
+    <a href="{% url 'asignar_envios_pendientes' %}" class="btn mb-3" style="background:#2c2c2c; color:#F5C518; font-weight:700; border-radius:10px; padding:10px 22px;">
+        ← Volver
+    </a>
+
+    <div class="logo-wrapper mb-4">
+<div class="pdf-loader" id="pdfLoader">
+    <div class="loader-box">
+        <div class="spinner"></div>
+        <h5 style="font-weight:800; color:#2c2c2c; margin-bottom:4px;">Generando PDF...</h5>
+        <p style="color:#aaa; font-size:13px; margin:0;">Por favor esperá un momento</p>
+    </div>
+</div>
+
+<div class="container py-4" style="max-width:980px;">
+    <div class="logo-wrapper mb-4">
+        <div class="logo-carrito">
+            <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 12h10l12 38h36l8-28H28" stroke="#F5C518" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="36" cy="60" r="4.5" fill="#F5C518"/>
+                <circle cx="58" cy="60" r="4.5" fill="#F5C518"/>
+            </svg>
+        </div>
+        <div class="logo-texto">
+            <div class="nombre">STOCKE<span>ARCE</span></div>
+            <div class="sub">Distribuidora Mayorista</div>
+            <div class="tag">Stockearce al mejor precio</div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="card-main">
+                <div class="encabezado">
+                    <h4>📋 Detalle de Venta</h4>
+                    <span class="badge-pedido">Pedido #{{ venta.id }}</span>
+                </div>
+                <div class="p-4">
+                    <div class="info-grid">
+                        <div class="info-box">
+                            <label>Cliente</label>
+                            <span id="dato-cliente">{{ venta.cliente.nombre_completo }}</span>
+                        </div>
+                        {% if venta.cliente.nombre_local %}
+                        <div class="info-box">
+                            <label>Local</label>
+                            <span id="dato-local">{{ venta.cliente.nombre_local }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="info-box">
+                            <label>Dirección</label>
+                            <span id="dato-direccion">{{ venta.cliente.direccion|default:"Sin dirección" }}</span>
+                        </div>
+                        <div class="info-box">
+                            <label>Fecha de Entrega</label>
+                            <span id="dato-fecha">{{ venta.fecha_creacion|date:"d/m/Y" }}</span>
+                        </div>
+                        <div class="info-box">
+                            <label>Vendedor</label>
+                            <span id="dato-vendedor">{{ venta.usuario_creador.username|default:"N/A" }}</span>
+                        </div>
+                    </div>
+
+                    {% if venta.chofer %}
+                    <div class="info-grid" style="margin-top:-6px;">
+                        <div class="info-box" style="border-left-color:#2c2c2c;">
+                            <label>🚚 Chofer Asignado</label>
+                            <span id="dato-chofer">{{ venta.chofer.nombre_completo }}</span>
+                        </div>
+                        <div class="info-box" style="border-left-color:#2c2c2c;">
+                            <label>🚗 Vehículo</label>
+                            <span id="dato-vehiculo">{{ venta.chofer.vehiculo }}</span>
+                        </div>
+                        <div class="info-box" style="border-left-color:#2c2c2c;">
+                            <label>📅 Fecha de Envío</label>
+                            <span id="dato-fecha-envio">{{ venta.fecha_envio_programada|date:"d/m/Y"|default:"Sin fecha" }}</span>
+                        </div>
+                        {% if venta.hora_envio_programada %}
+                        <div class="info-box" style="border-left-color:#2c2c2c;">
+                            <label>⏰ Hora Estimada</label>
+                            <span id="dato-hora-envio">{{ venta.hora_envio_programada }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <div style="font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#aaa; margin-bottom:8px;">Total de la venta</div>
+                        <div class="total-pill">$<span id="dato-total">{{ venta.valor_total }}</span></div>
+                    </div>
+
+                    <div style="font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#aaa; margin-bottom:10px;">Productos</div>
+                    <table class="table tabla-prod" id="tabla-productos">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Medida</th>
+                                <th>Cant.</th>
+                                <th>Packs</th>
+                                <th>Precio Unit.</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detalle in detalles %}
+                            <tr class="fila-producto"
+                                data-nombre="{{ detalle.producto.nombre }}"
+                                data-medida="{{ detalle.producto.medida|default:'' }}"
+                                data-cantidad="{{ detalle.cantidad }}"
+                                data-packs="{{ detalle.packs|default:'' }}"
+                                data-precio="{{ detalle.precio_unitario }}"
+                                data-subtotal="{{ detalle.subtotal }}">
+                                <td>{{ detalle.producto.nombre }}</td>
+                                <td>{{ detalle.producto.medida|default:"-" }}</td>
+                                <td>{{ detalle.cantidad }}</td>
+                                <td>{{ detalle.packs|default:"-" }}</td>
+                                <td>${{ detalle.precio_unitario }}</td>
+                                <td><strong>${{ detalle.subtotal }}</strong></td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="fila-total">
+                                <td colspan="5" class="text-end pe-3">TOTAL</td>
+                                <td><strong>${{ venta.valor_total }}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="d-grid mt-3">
+                        <button type="button" class="btn btn-pdf" id="btnGenerarPDF">
+                            📄 Descargar Recibo PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            {% if venta.estado in 'pendiente,confirmada' %}
+            <div class="card-chofer">
+                <div class="ch-header">
+                    <h5>🚚 Asignar Chofer</h5>
+                </div>
+                <div class="p-4">
+                    <form method="POST" action="{% url 'asignar_chofer_venta' venta.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold" style="font-size:13px;">Chofer</label>
+                            <select name="chofer" class="form-select" required>
+                                <option value="">Seleccione chofer</option>
+                                {% for chofer in choferes %}
+                                <option value="{{ chofer.id }}">{{ chofer.nombre_completo }} — {{ chofer.vehiculo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold" style="font-size:13px;">Fecha de Recorrido</label>
+                            <input type="date" name="fecha_envio_programada" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold" style="font-size:13px;">Hora Estimada</label>
+                            <input type="time" name="hora_envio_programada" class="form-control">
+                        </div>
+                        <button type="submit" class="btn-confirmar">✅ Confirmar Venta</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('btnGenerarPDF').addEventListener('click', function () {
+        document.getElementById('pdfLoader').classList.add('show');
+        setTimeout(function () {
+            try { generarPDFVenta(); }
+            catch (e) { alert('Error al generar PDF: ' + e.message); }
+            document.getElementById('pdfLoader').classList.remove('show');
+        }, 120);
+    });
+
+    // ─────────────────────────────────────────────
+    //  Dibuja el carrito vectorial en el PDF
+    //  ox, oy = esquina sup-izq (mm), sc = escala
+    // ─────────────────────────────────────────────
+   function dibujarCarrito(doc, ox, oy, sc, color) {
+    doc.setDrawColor(...color);
+    doc.setFillColor(...color);
+    doc.setLineCap('round');
+    doc.setLineJoin('round');
+
+    // ── Mango (línea corta arriba a la izquierda) ──
+    doc.setLineWidth(sc * 0.7);
+    doc.line(ox, oy + 1.5*sc,  ox + 2.5*sc, oy + 1.5*sc);   // horizontal
+    doc.line(ox + 2.5*sc, oy + 1.5*sc, ox + 3.5*sc, oy + 3.5*sc); // diagonal bajando
+
+    // ── Cuerpo trapezoide (base ancha, frente vertical, tapa) ──
+    // Tapa superior
+    doc.line(ox + 3.5*sc, oy + 3.5*sc,  ox + 14.5*sc, oy + 3.5*sc);
+    // Frente derecho (vertical)
+    doc.line(ox + 14.5*sc, oy + 3.5*sc, ox + 13.5*sc, oy + 8.5*sc);
+    // Base inferior
+    doc.line(ox + 13.5*sc, oy + 8.5*sc, ox + 4.5*sc,  oy + 8.5*sc);
+    // Frente izquierdo (diagonal suave)
+    doc.line(ox + 4.5*sc,  oy + 8.5*sc, ox + 3.5*sc,  oy + 3.5*sc);
+
+    // ── Ruedas (círculos pequeños rellenos) ──
+    doc.setLineWidth(0.1);
+    doc.circle(ox + 6*sc,   oy + 10.5*sc, sc * 0.85, 'F');
+    doc.circle(ox + 12*sc,  oy + 10.5*sc, sc * 0.85, 'F');
+}
+    function generarPDFVenta() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+        // ── Datos del DOM ──
+        const cliente       = document.getElementById('dato-cliente')?.innerText.trim()      || '';
+        const localNombre   = document.getElementById('dato-local')?.innerText.trim()        || '';
+        const direccion     = document.getElementById('dato-direccion')?.innerText.trim()    || 'Sin dirección';
+        const fecha         = document.getElementById('dato-fecha')?.innerText.trim()        || '';
+        const vendedor      = document.getElementById('dato-vendedor')?.innerText.trim()     || '';
+        const total         = document.getElementById('dato-total')?.innerText.trim()        || '';
+        const pedido        = "{{ venta.id }}";
+        const choferNombre  = document.getElementById('dato-chofer')?.innerText.trim()       || '';
+        const choferVeh     = document.getElementById('dato-vehiculo')?.innerText.trim()     || '';
+        const fechaEnvio    = document.getElementById('dato-fecha-envio')?.innerText.trim()  || '';
+        const horaEnvio     = document.getElementById('dato-hora-envio')?.innerText.trim()   || '';
+
+        const productos = [];
+        document.querySelectorAll('.fila-producto').forEach(f => {
+            productos.push({
+                nombre:   f.dataset.nombre,
+                medida:   f.dataset.medida   || '-',
+                cantidad: f.dataset.cantidad,
+                packs:    f.dataset.packs    || '-',
+                precio:   f.dataset.precio   || '',
+                subtotal: f.dataset.subtotal || '',
+            });
+        });
+
+        // ── Paleta ──
+        const AM  = [245, 197, 24];
+        const OS  = [44,  44,  44];
+        const BL  = [255, 255, 255];
+        const GR  = [240, 240, 240];
+        const BOR = [180, 180, 180];
+
+        const PW = 210;
+        const ML = 10;
+        const TW = PW - ML - 10;
+
+        // ════════════════════════════════════════
+        //  ENCABEZADO
+        // ════════════════════════════════════════
+        let y = 8;
+        const logoBoxW = TW * 0.44;
+        const logoBoxH = 24;
+
+        // Caja blanca logo
+        doc.setFillColor(...BL);
+        doc.setDrawColor(...BOR);
+        doc.rect(ML, y, logoBoxW, logoBoxH, 'FD');
+
+        // Carrito vectorial
+        dibujarCarrito(doc, ML + 2, y + 3.5, 1.1, AM);
+
+        // Texto STOCKEARCE
+        const txtX = ML + 19;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(15);
+        doc.setTextColor(...OS);
+        doc.text('STOCKE', txtX, y + 10);
+        const wStocke = doc.getTextWidth('STOCKE');
+        doc.setTextColor(...AM);
+        doc.text('ARCE', txtX + wStocke, y + 10);
+
+        doc.setFontSize(6.5);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        doc.text('DISTRIBUIDORA MAYORISTA',    txtX, y + 15.5);
+        doc.text('STOCKEARCE AL MEJOR PRECIO', txtX, y + 20);
+
+        // Caja amarilla "RECIBO DE ENTREGA"
+        const rX = ML + logoBoxW + 2;
+        const rW = TW - logoBoxW - 2;
+        doc.setFillColor(...AM);
+        doc.rect(rX, y, rW, logoBoxH, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.setTextColor(...OS);
+        doc.text('RECIBO DE ENTREGA', rX + rW / 2, y + 14, { align: 'center' });
+
+        y += logoBoxH + 4;
+
+        // ════════════════════════════════════════
+        //  TABLA INFO
+        // ════════════════════════════════════════
+        const ROW_H = 7.5;
+        const LAB_W = 45;
+
+        const drawInfoRow = (label, value, isGray = false) => {
+            doc.setFillColor(isGray ? 248 : 255, isGray ? 248 : 255, isGray ? 248 : 255);
+            doc.rect(ML, y, TW, ROW_H, 'F');
+            doc.setDrawColor(...BOR);
+            doc.rect(ML, y, TW, ROW_H, 'D');
+            doc.line(ML + LAB_W, y, ML + LAB_W, y + ROW_H);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(8);
+            doc.setTextColor(...OS);
+            doc.text(label, ML + 2, y + 5);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(50, 50, 50);
+            doc.text(String(value), ML + LAB_W + 3, y + 5);
+            y += ROW_H;
+        };
+
+        drawInfoRow('Nº de Pedido',     pedido);
+        drawInfoRow('Cliente',          cliente,      true);
+        drawInfoRow('Dirección',        direccion,    true);
+        drawInfoRow('Vendedor',         vendedor);
+        if (choferNombre) drawInfoRow('Chofer Asignado',  choferNombre, true);
+        if (choferVeh)    drawInfoRow('Vehículo',         choferVeh);
+        if (fechaEnvio)   drawInfoRow('Fecha de Envío',   fechaEnvio,   true);
+
+        y += 4;
+
+        // ════════════════════════════════════════
+        //  TABLA PRODUCTOS
+        // ════════════════════════════════════════
+        const cols = [
+            { label: 'Producto',        w: 55, align: 'left'   },
+            { label: 'Medida',          w: 20, align: 'center' },
+            { label: 'Cantidad',        w: 22, align: 'center' },
+            { label: 'PACKS',           w: 18, align: 'center' },
+            { label: 'Precio Unitario', w: 38, align: 'center' },
+            { label: 'Precio Total',    w: 37, align: 'right'  },
+        ];
+        let cx = ML;
+        cols.forEach(c => { c.x = cx; cx += c.w; });
+
+        const TH = 9;
+        doc.setFillColor(...AM);
+        doc.rect(ML, y, TW, TH, 'F');
+        doc.setDrawColor(...BOR);
+        doc.rect(ML, y, TW, TH, 'D');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(...OS);
+        cols.forEach(c => {
+            if (c.x > ML) doc.line(c.x, y, c.x, y + TH);
+            const tx = c.align === 'right'  ? c.x + c.w - 2
+                     : c.align === 'center' ? c.x + c.w / 2
+                     : c.x + 2;
+            doc.text(c.label, tx, y + 6, { align: c.align === 'left' ? 'left' : c.align });
+        });
+        y += TH;
+
+        const RH = 8;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+
+        productos.forEach((p, i) => {
+            if (y + RH > 265) { doc.addPage(); y = 15; }
+
+            doc.setFillColor(...(i % 2 === 0 ? BL : GR));
+            doc.rect(ML, y, TW, RH, 'F');
+            doc.setDrawColor(...BOR);
+            doc.rect(ML, y, TW, RH, 'D');
+            doc.setTextColor(...OS);
+
+            cols.forEach(c => {
+                if (c.x > ML) doc.line(c.x, y, c.x, y + RH);
+
+                let val = '';
+                if      (c.label === 'Producto')        val = p.nombre;
+                else if (c.label === 'Medida')          val = p.medida;
+                else if (c.label === 'Cantidad')        val = p.cantidad;
+                else if (c.label === 'PACKS')           val = p.packs;
+                else if (c.label === 'Precio Unitario') val = p.precio ? '$ ' + p.precio : '';
+                else if (c.label === 'Precio Total')    val = p.subtotal ? '$' + p.subtotal : '';
+
+                const tx = c.align === 'right'  ? c.x + c.w - 2
+                         : c.align === 'center' ? c.x + c.w / 2
+                         : c.x + 2;
+
+                if (c.label === 'Producto') {
+                    const lines = doc.splitTextToSize(val, c.w - 3);
+                    doc.text(lines[0], tx, y + 5.5);
+                } else {
+                    doc.text(val, tx, y + 5.5, { align: c.align === 'left' ? 'left' : c.align });
+                }
+            });
+            y += RH;
+        });
+
+        // Fila TOTAL
+        const FT = 10;
+        doc.setFillColor(...AM);
+        doc.rect(ML, y, TW, FT, 'F');
+        doc.setDrawColor(...BOR);
+        doc.rect(ML, y, TW, FT, 'D');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(...OS);
+        const totLabelX = ML + (cols[0].w + cols[1].w + cols[2].w + cols[3].w) / 2;
+        doc.text('TOTAL', totLabelX + 15, y + 7, { align: 'center' });
+        doc.text('$' + total, ML + TW - 2, y + 7, { align: 'right' });
+        y += FT + 6;
+
+        // ════════════════════════════════════════
+        //  OBSERVACIONES / COBRANZA
+        // ════════════════════════════════════════
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(...OS);
+        doc.text('Observaciones', ML + 2, y);
+        y += 5;
+
+        const cobCols = [
+            { label: 'FECHA',         w: 40 },
+            { label: 'METODO',        w: 50 },
+            { label: 'IMPORTE',       w: 40 },
+            { label: 'N COMPROBANTE', w: 60 },
+        ];
+        let cobX = ML;
+        cobCols.forEach(c => { c.x = cobX; cobX += c.w; });
+
+        const CH = 8;
+        doc.setFillColor(...AM);
+        doc.rect(ML, y, TW, CH, 'F');
+        doc.setDrawColor(...BOR);
+        doc.rect(ML, y, TW, CH, 'D');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(...OS);
+        cobCols.forEach(c => {
+            if (c.x > ML) doc.line(c.x, y, c.x, y + CH);
+            doc.text(c.label, c.x + c.w / 2, y + 5.5, { align: 'center' });
+        });
+        y += CH;
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(...OS);
+        for (let r = 0; r < 2; r++) {
+            doc.setFillColor(...BL);
+            doc.rect(ML, y, TW, CH + 1, 'F');
+            doc.setDrawColor(...BOR);
+            doc.rect(ML, y, TW, CH + 1, 'D');
+            cobCols.forEach(c => {
+                if (c.x > ML) doc.line(c.x, y, c.x, y + CH + 1);
+            });
+            if (r === 0) doc.text('COBRANZA', ML + 2, y + 6);
+            y += CH + 1;
+        }
+
+        y += 5;
+
+        // ════════════════════════════════════════
+        //  RECIBIDO POR
+        // ════════════════════════════════════════
+        if (y + 38 > 280) { doc.addPage(); y = 15; }
+
+        doc.setFillColor(252, 252, 252);
+        doc.setDrawColor(...BOR);
+        doc.rect(ML, y, TW, 38, 'FD');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(...OS);
+        doc.text('Recibido por:', ML + 2, y + 7);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(60, 60, 60);
+
+        const linea = (lbl, yRel) => {
+            doc.text(lbl, ML + 2, y + yRel);
+            doc.setDrawColor(160, 160, 160);
+            doc.line(ML + 2 + doc.getTextWidth(lbl) + 3, y + yRel, ML + TW - 5, y + yRel);
+        };
+        linea('Nombre y Apellido:',    16);
+        linea('DNI / Identificación:', 26);
+        linea('Firma de Recibido:',    37);
+
+        // Footer
+        doc.setFontSize(7);
+        doc.setTextColor(180, 180, 180);
+        doc.text('STOCKEARCE — Distribuidora Mayorista — Al mejor precio', PW / 2, 291, { align: 'center' });
+
+        doc.save(`Recibo_Stockearce_${pedido}.pdf`);
+    }
+</script>
+</body>
+</html>

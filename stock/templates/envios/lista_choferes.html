@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Choferes - Amarce</title>
+<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+     <link rel="stylesheet" href="{% static 'css/style.css' %}"></head>
+<body class="bg-light">
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Equipo de Choferes</h2>
+            <a href="{% url 'crear_chofer' %}" class="btn btn-success">+ Nuevo Chofer</a>
+        </div>
+        <div class="row">
+            {% for ch in choferes %}
+            <div class="col-md-4 mb-3">
+                <div class="card shadow-sm border-{% if ch.activo %}success{% else %}danger{% endif %}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ ch.nombre_completo }}</h5>
+                        <p class="card-text">
+                            <strong>Vehículo:</strong> {{ ch.vehiculo }}<br>
+                            <strong>Teléfono:</strong> {{ ch.telefono }}
+                        </p>
+                        <span class="badge {% if ch.activo %}bg-success{% else %}bg-danger{% endif %} mb-3">
+                            {% if ch.activo %}Activo{% else %}Inactivo{% endif %}
+                        </span>
+                        <hr>
+                        <a href="{% url 'editar_chofer' ch.id %}" class="btn btn-sm btn-primary">Editar Chofer</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <a href="{% url 'home' %}" class="btn btn-secondary mt-3">Volver al Inicio</a>
+    </div>
+</body>
+</html>

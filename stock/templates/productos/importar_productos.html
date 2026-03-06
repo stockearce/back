@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importar Productos - Sistema Amarce</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<div class="container mt-5" style="max-width:600px;">
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header text-white fw-bold" style="background:#0F3460;">
+            ⬆️ Importar Productos desde Excel
+        </div>
+
+        <div class="card-body p-4">
+
+            {% for m in messages %}
+            <div class="alert alert-{{ m.tags }} alert-dismissible fade show">
+                {{ m }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+
+            <div class="alert alert-warning small">
+                <strong>📥 Paso 1 — Descargá el modelo</strong><br>
+                El archivo viene con los <strong>tipos de producto</strong> cargados
+                como lista desplegable en la columna TIPO. Completá desde la fila 3.
+                <div class="mt-2">
+                    <a href="{% url 'descargar_template' %}" class="btn btn-warning btn-sm fw-bold">
+                        📥 Descargar modelo Excel
+                    </a>
+                </div>
+            </div>
+
+            <div class="alert alert-info small">
+                <strong>📤 Paso 2 — Completalo y subilo acá</strong><br>
+                Si el producto ya existe se <strong>actualiza</strong>,
+                si no existe se <strong>crea</strong>.
+            </div>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Archivo Excel (.xlsx)</label>
+                    <input type="file" name="archivo" accept=".xlsx" class="form-control" required>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        ⬆️ Importar productos
+                    </button>
+                    <a href="{% url 'exportar_productos' %}" class="btn btn-outline-success">
+                        ⬇️ Exportar productos actuales
+                    </a>
+                    <a href="{% url 'lista_productos' %}" class="btn btn-outline-secondary">
+                        ← Volver a productos
+                    </a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

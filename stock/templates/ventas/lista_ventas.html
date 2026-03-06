@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventas - Sistema Amarce</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-4">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>🧾 Ventas</h2>
+        <a href="{% url 'home' %}" class="btn btn-secondary">Volver</a>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+
+                <div class="col-md-3">
+                    <label class="form-label">Fecha de venta</label>
+                    <input type="date" name="fecha" class="form-control" value="{{ fecha }}">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Cliente</label>
+                    <select name="cliente" class="form-select">
+                        <option value="">Todos</option>
+                        {% for c in clientes %}
+                        <option value="{{ c.id }}"
+                            {% if cliente_id == c.id|stringformat:"s" %}selected{% endif %}>
+                            {{ c.nombre_completo }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Estado</label>
+                    <select name="estado" class="form-select">
+                        <option value="">Todos</option>
+                        {% for valor, nombre in estados %}
+                        <option value="{{ valor }}" {% if estado == valor %}selected{% endif %}>
+                            {{ nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-dark w-100">
+                        🔍 Buscar Ventas
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- MENSAJE SIN BÚSQUEDA -->
+    {% if not hay_filtros %}
+    <div class="alert alert-info text-center shadow-sm">
+        <h5>🔎 Buscar ventas</h5>
+        <p class="mb-0">
+            Seleccione una fecha o filtro y presione <strong>Buscar</strong>
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- TABLA -->
+    {% if hay_filtros %}
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            📋 Resultados de ventas
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Estado</th>
+                        <th>Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for venta in ventas %}
+                    <tr>
+                        <td><strong>#{{ venta.id }}</strong></td>
+                        <td>{{ venta.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                        <td>{{ venta.cliente.nombre_completo }}</td>
+                        <td>
+                            {% if venta.estado == 'pendiente' %}
+                                <span class="badge bg-danger">Pendiente</span>
+                            {% elif venta.estado == 'confirmada' %}
+                                <span class="badge bg-warning text-dark">Confirmada</span>
+                            {% elif venta.estado == 'enviada' %}
+                                <span class="badge bg-info">Enviada</span>
+                            {% elif venta.estado == 'entregada' %}
+                                <span class="badge bg-success">Entregada</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ venta.get_estado_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td><strong>${{ venta.valor_total }}</strong></td>
+                        <td class="text-end">
+                            <a href="{% url 'detalle_venta' venta.id %}" class="btn btn-sm btn-primary">
+                                Ver detalle
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No se encontraron ventas con estos filtros
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>

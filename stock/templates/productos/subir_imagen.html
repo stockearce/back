@@ -1,0 +1,121 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subir Imagen</title>
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<style>
+.form-container{
+    max-width:500px;
+    margin:80px auto;
+    padding:var(--space-xl);
+    background:var(--bg-card);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-md);
+}
+.form-container h2{
+    text-align:center;
+    margin-bottom:var(--space-lg);
+}
+.form-group{
+    margin-bottom:var(--space-lg);
+    display:flex;
+    flex-direction:column;
+}
+.form-group label{
+    font-weight:600;
+    margin-bottom:6px;
+    color:var(--text-muted);
+}
+.form-group select,
+.form-group input{
+    padding:12px;
+    border-radius:var(--radius-sm);
+    border:1px solid var(--border-color);
+    font-size:15px;
+    transition:var(--transition-fast);
+    background:white;
+}
+.form-group select:focus,
+.form-group input:focus{
+    outline:none;
+    border-color:var(--accent-color);
+    box-shadow:0 0 0 2px var(--accent-light);
+}
+.btn-submit{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:var(--radius-sm);
+    background:var(--accent-color);
+    color:var(--text-main);
+    font-weight:700;
+    cursor:pointer;
+    transition:var(--transition-fast);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+}
+.btn-submit:hover:not(:disabled){
+    background:var(--accent-hover);
+    transform:translateY(-2px);
+}
+.btn-submit:disabled{
+    opacity:0.7;
+    cursor:not-allowed;
+    transform:none;
+}
+.spinner{
+    display:none;
+    width:16px;
+    height:16px;
+    border:2px solid rgba(0,0,0,0.2);
+    border-top-color:#000;
+    border-radius:50%;
+    animation:spin 0.7s linear infinite;
+}
+@keyframes spin{
+    to { transform:rotate(360deg); }
+}
+</style>
+</head>
+<body>
+<div class="form-container">
+    <h2>Subir imagen de producto</h2>
+    <form method="POST" enctype="multipart/form-data" id="formSubir">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Producto</label>
+            <select name="producto" required>
+                {% for p in productos %}
+                <option value="{{ p.id }}">{{ p.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Imagen</label>
+            <input type="file" name="imagen" accept="image/*" required>
+        </div>
+        <button class="btn-submit" type="submit" id="btnSubir">
+            <span class="spinner" id="spinner"></span>
+            <span id="btnTexto">Subir imagen</span>
+        </button>
+    </form>
+</div>
+
+<script>
+document.getElementById('formSubir').addEventListener('submit', function() {
+    const btn     = document.getElementById('btnSubir');
+    const spinner = document.getElementById('spinner');
+    const texto   = document.getElementById('btnTexto');
+
+    btn.disabled        = true;
+    spinner.style.display = 'block';
+    texto.textContent   = 'Subiendo...';
+});
+</script>
+</body>
+</html>

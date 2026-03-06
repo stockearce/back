@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Cliente - Amarce</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-dark text-white">
+                        <h4 class="mb-0">Registrar Nuevo Cliente</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label">Nombre Completo / Titular</label>
+                                <input type="text" name="nombre_completo" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Nombre del Local</label>
+                                <input type="text" name="nombre_local" class="form-control" placeholder="Ej: Almacén Don Pepe">
+                            </div>
+                            
+                            <!-- 🆕 NUEVO: CUIL -->
+                            <div class="mb-3">
+                                <label class="form-label">CUIL/CUIT</label>
+                                <input type="text" name="cuil" class="form-control" 
+                                       placeholder="Ej: 20-12345678-9">
+                                <small class="text-muted">Formato: XX-XXXXXXXX-X</small>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Teléfono</label>
+                                    <input type="text" name="telefono" class="form-control">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" name="email" class="form-control">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Dirección Particular/Local</label>
+                                <input type="text" name="direccion" class="form-control" required>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Guardar Cliente</button>
+                                <a href="{% url 'lista_clientes' %}" class="btn btn-outline-secondary">Volver</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

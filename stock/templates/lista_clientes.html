@@ -1,0 +1,95 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Clientes - Amarce</title>
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-4">
+
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Cartera de Clientes</h2>
+        <div>
+            <a href="{% url 'home' %}" class="btn btn-secondary">
+                Inicio
+            </a>
+            <a href="{% url 'crear_cliente' %}" class="btn btn-primary">
+                + Nuevo Cliente
+            </a>
+        </div>
+    </div>
+
+    <!-- Mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Tabla -->
+    <table class="table table-bordered bg-white shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>Nombre / Local</th>
+                <th>Dirección</th>
+                <th>Teléfono</th>
+
+                {% if request.user.is_superuser or request.user.perfilusuario.tipo == 'administrativo' %}
+                    <th>Creado por</th>
+                {% endif %}
+
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for c in clientes %}
+            <tr>
+                <td>
+                    <strong>{{ c.nombre_completo }}</strong><br>
+                    <small class="text-muted">
+                        {{ c.nombre_local|default:"" }}
+                    </small>
+                </td>
+
+                <td>{{ c.direccion|default:"-" }}</td>
+                <td>{{ c.telefono|default:"-" }}</td>
+
+                {% if request.user.is_superuser or request.user.perfilusuario.tipo == 'administrativo' %}
+                    <td>
+                        <span class="badge bg-secondary">
+                            {{ c.usuario.username }}
+                        </span>
+                    </td>
+                {% endif %}
+
+                <td>
+                    <a href="{% url 'editar_cliente' c.id %}" 
+                       class="btn btn-sm btn-outline-primary">
+                        Editar
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted py-4">
+                    No hay clientes cargados.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+</body>
+</html>

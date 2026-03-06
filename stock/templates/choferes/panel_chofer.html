@@ -1,0 +1,382 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Chofer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f0f2f5;
+            color: #222;
+            min-height: 100vh;
+        }
+
+        /* ── HEADER ── */
+        .panel-header {
+            background: #2c2c2c;
+            padding: 14px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-inner {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .avatar-wrap { display: flex; align-items: center; gap: 12px; }
+        .avatar {
+            width: 42px; height: 42px;
+            background: #F5C518;
+            color: #2c2c2c;
+            border-radius: 50%;
+            font-size: 18px;
+            font-weight: 800;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .header-name { color: white; font-weight: 700; font-size: 15px; }
+        .header-sub  { color: #aaa; font-size: 12px; }
+        .btn-logout {
+            background: transparent;
+            border: 2px solid #F5C518;
+            color: #F5C518;
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-weight: 700;
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        /* ── MENSAJES ── */
+        .messages-wrap { max-width: 600px; margin: 12px auto 0; padding: 0 16px; }
+        .msg-item {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .msg-success { background: #d1e7dd; color: #0a3622; }
+        .msg-error   { background: #f8d7da; color: #842029; }
+
+        /* ── MAIN ── */
+        .main { max-width: 600px; margin: 0 auto; padding: 16px; }
+
+        /* ── FILTRO FECHA ── */
+        .filter-card {
+            background: white;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+        .filter-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .filter-row { display: flex; gap: 8px; align-items: center; }
+        .date-input {
+            flex: 1;
+            padding: 11px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            color: #2c2c2c;
+        }
+        .date-input:focus { outline: none; border-color: #F5C518; }
+        .btn-search {
+            background: #2c2c2c;
+            color: #F5C518;
+            border: none;
+            border-radius: 10px;
+            padding: 11px 18px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn-clear {
+            background: #f0f0f0;
+            color: #555;
+            border-radius: 10px;
+            padding: 11px 14px;
+            text-decoration: none;
+            font-weight: 700;
+        }
+        .active-pill {
+            margin-top: 10px;
+            background: #fff8e1;
+            color: #856404;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        /* ── SECTION HEADER ── */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .section-title { font-size: 16px; font-weight: 800; color: #2c2c2c; }
+        .count-badge {
+            background: #F5C518;
+            color: #2c2c2c;
+            border-radius: 99px;
+            padding: 2px 10px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        /* ── TARJETA VENTA ── */
+        .venta-card {
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            overflow: hidden;
+        }
+
+        /* Franja de hora lateral izquierda */
+        .vcard-inner {
+            display: flex;
+        }
+        .hora-strip {
+            background: #2c2c2c;
+            color: #F5C518;
+            min-width: 64px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 8px;
+            font-weight: 800;
+            font-size: 17px;
+            letter-spacing: -0.5px;
+            flex-shrink: 0;
+        }
+        .hora-strip .hora-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .hora-strip .sin-hora {
+            font-size: 11px;
+            color: #888;
+            font-weight: 600;
+        }
+
+        .vcard-body {
+            padding: 14px 16px;
+            flex: 1;
+        }
+        .vcard-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .cliente-nombre {
+            font-size: 16px;
+            font-weight: 800;
+            color: #2c2c2c;
+            line-height: 1.2;
+        }
+        .estado-chip {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 99px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .chip-confirmada { background: #fff3cd; color: #856404; }
+        .chip-enviada    { background: #cff4fc; color: #055160; }
+
+        .vcard-dir {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .vcard-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .total-chip {
+            background: #f5f5f5;
+            color: #2c2c2c;
+            border-radius: 8px;
+            padding: 5px 12px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .btn-detalle {
+            background: #F5C518;
+            color: #2c2c2c;
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-weight: 700;
+            font-size: 13px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-detalle:hover { opacity: 0.9; }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+        .empty-icon  { font-size: 52px; margin-bottom: 12px; }
+        .empty-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+        .empty-sub   { font-size: 14px; color: #888; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="panel-header">
+        <div class="header-inner">
+            <div class="avatar-wrap">
+                <div class="avatar">{{ chofer.nombre_completo|slice:":1"|upper }}</div>
+                <div>
+                    <div class="header-name">{{ chofer.nombre_completo }}</div>
+                    <div class="header-sub">Chofer activo</div>
+                </div>
+            </div>
+            <a href="{% url 'chofer_cerrar_sesion' %}" class="btn-logout">Salir</a>
+        </div>
+    </header>
+
+    <!-- MENSAJES -->
+    {% if messages %}
+    <div class="messages-wrap">
+        {% for message in messages %}
+        <div class="msg-item {% if message.tags == 'success' %}msg-success{% else %}msg-error{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="main">
+
+        <!-- FILTRO FECHA -->
+        <div class="filter-card">
+            <span class="filter-label">🗓 Filtrar por fecha</span>
+            <form method="GET">
+                <div class="filter-row">
+                    <input type="date" name="fecha" class="date-input"
+                        value="{{ fecha_filtro|default:'' }}">
+                    <button type="submit" class="btn-search">Buscar</button>
+                    {% if fecha_filtro %}
+                    <a href="{% url 'panel_chofer' %}" class="btn-clear">✕</a>
+                    {% endif %}
+                </div>
+            </form>
+            {% if fecha_filtro %}
+            <div class="active-pill">📅 Mostrando: {{ fecha_filtro }}</div>
+            {% endif %}
+        </div>
+
+        <!-- CABECERA LISTA -->
+        <div class="section-header">
+            <span class="section-title">Pedidos asignados</span>
+            {% if ventas_asignadas %}
+            <span class="count-badge">{{ ventas_asignadas|length }}</span>
+            {% endif %}
+        </div>
+
+        <!-- TARJETAS -->
+        {% if ventas_asignadas %}
+            {% for venta in ventas_asignadas %}
+            <div class="venta-card">
+                <div class="vcard-inner">
+
+                    <!-- FRANJA HORA -->
+                    <div class="hora-strip">
+                        <span class="hora-label">Hora</span>
+                        {% if venta.hora_envio_programada %}
+                            {{ venta.hora_envio_programada|time:"H:i" }}
+                        {% else %}
+                            <span class="sin-hora">—</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- CONTENIDO -->
+                    <div class="vcard-body">
+                        <div class="vcard-top">
+                            <span class="cliente-nombre">{{ venta.cliente.nombre_completo }}</span>
+                            <span class="estado-chip chip-{{ venta.estado }}">
+                                {% if venta.estado == 'confirmada' %}⏳ Confirmada
+                                {% elif venta.estado == 'enviada' %}🚚 Enviada
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="vcard-dir">
+                            📍 {{ venta.cliente.direccion|default:"Sin dirección" }}
+                        </div>
+                        <div class="vcard-footer">
+                            <span class="total-chip">💰 ${{ venta.valor_total }}</span>
+                            <a class="btn-detalle" href="{% url 'chofer_detalle_venta_confirmada' venta.id %}">
+                                Ver pedido →
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            {% endfor %}
+
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                {% if fecha_filtro %}
+                    <div class="empty-title">Sin pedidos para esa fecha</div>
+                    <p class="empty-sub">No hay envíos programados para el {{ fecha_filtro }}.<br>Probá con otra fecha o limpiá el filtro.</p>
+                {% else %}
+                    <div class="empty-title">¡No tenés pedidos asignados!</div>
+                    <p class="empty-sub">Cuando te asignen una venta confirmada, aparecerá aquí.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+
+    </main>
+
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.msg-item').forEach(m => {
+                m.style.transition = 'opacity .4s';
+                m.style.opacity = '0';
+                setTimeout(() => m.remove(), 400);
+            });
+        }, 3500);
+    </script>
+
+</body>
+</html>

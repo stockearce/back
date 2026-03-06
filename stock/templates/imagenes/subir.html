@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Imagen de Producto</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+</head>
+<body class="bg-light">
+<nav class="navbar">
+    <a href="{% url 'home' %}" class="navbar-brand">
+        <i class="bi bi-box-seam"></i> Sistema de StockArce
+    </a>
+    <input type="checkbox" id="navbar-toggle">
+    <label for="navbar-toggle" class="navbar-toggler">
+        <span class="navbar-toggler-icon"></span>
+    </label>
+    <ul class="navbar-nav">
+        <li><a href="{% url 'home' %}" class="nav-link">Inicio</a></li>
+        <li><a href="{% url 'lista_productos' %}" class="nav-link">Productos</a></li>
+        <li><a href="{% url 'venta' %}" class="nav-link">Registro de Venta</a></li> 
+        <li><a href="{% url 'consultar_ventas' %}" class="nav-link">Historial de Venta</a></li>
+        <li><a href="{% url 'lista_clientes' %}" class="nav-link">Clientes</a></li>
+        <li><a href="{% url 'crear_cliente' %}" class="nav-link">Crear Cliente</a></li> 
+        <li><a href="{% url 'panel_alertas' %}" class="nav-link">Alertas</a></li>
+        <li><a href="{% url 'subir_imagen' %}" class="nav-link active">Subir Imagen</a></li>
+    </ul>
+</nav>
+
+<div class="container mt-5">
+    <h2>Subir Imagen de Producto</h2>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" class="mt-4">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label for="producto_id" class="form-label">Seleccionar Producto *</label>
+            <select class="form-control" id="producto_id" name="producto_id" required>
+                <option value="">-- Seleccione un producto --</option>
+                {% for producto in productos %}
+                    <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="imagen" class="form-label">Imagen *</label>
+            <input type="file" class="form-control" id="imagen" name="imagen" accept="image/*" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Subir Imagen</button>
+    </form>
+</div>
+
+</body>
+</html>

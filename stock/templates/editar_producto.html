@@ -1,0 +1,208 @@
+{% load static %}
+{% load l10n %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Producto - Sistema Amarce</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Producto</h4>
+                    <button type="button" id="btnEditar" class="btn btn-light btn-sm" onclick="habilitarEdicion()">
+                        ✏️ Editar
+                    </button>
+                </div>
+
+                <div class="card-body p-4">
+
+                    {% if messages %}
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST" id="formProducto">
+                        {% csrf_token %}
+
+                        <!-- Nombre -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nombre del Producto</label>
+                            <input type="text"
+                                   name="nombre"
+                                   id="nombre"
+                                   class="form-control"
+                                   value="{{ producto.nombre }}"
+                                   disabled
+                                   required>
+                        </div>
+
+                        <!-- Tipo -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Tipo / Categoría</label>
+                            <select name="tipo" id="tipo" class="form-select" disabled required>
+                                {% for t in tipos %}
+                                <option value="{{ t.id }}"
+                                    {% if t.id == producto.tipo.id %}selected{% endif %}>
+                                    {{ t.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Cantidad</label>
+                                <input type="number"
+                                       name="cantidad"
+                                       id="cantidad"
+                                       class="form-control"
+                                       min="0"
+                                       value="{{ producto.cantidad }}"
+                                       disabled>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Precio de Compra</label>
+                                <input type="number"
+                                       step="0.01"
+                                       name="valor_compra"
+                                       id="valor_compra"
+                                       class="form-control"
+                                       value="{{ producto.valor_compra|unlocalize }}"
+                                       disabled>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Precio de Venta</label>
+                                <input type="number"
+                                       step="0.01"
+                                       name="valor"
+                                       id="valor"
+                                       class="form-control"
+                                       value="{{ producto.valor|unlocalize }}"
+                                       disabled>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Umbral de Alerta</label>
+                                <input type="number"
+                                       name="umbral_alerta"
+                                       id="umbral_alerta"
+                                       class="form-control"
+                                       min="0"
+                                       value="{{ producto.umbral_alerta }}"
+                                       disabled>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <small>
+                                <strong>💰 Ganancia estimada:</strong>
+                                <span id="ganancia">$0.00</span>
+                                &nbsp;|&nbsp;
+                                <strong>📊 Margen:</strong>
+                                <span id="margen">0%</span>
+                            </small>
+                        </div>
+
+                        <!-- Botones: ocultos hasta que se active edición -->
+                        <div class="d-grid gap-2" id="botonesGuardar" style="display:none !important;">
+                            <button type="submit" class="btn btn-success">
+                                💾 Guardar Cambios
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="cancelarEdicion()">
+                                Cancelar
+                            </button>
+                        </div>
+
+                        <div class="d-grid" id="botonVolver">
+                            <a href="{% url 'lista_productos' %}" class="btn btn-outline-secondary">
+                                ← Volver al Listado
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Guardamos los valores originales para poder cancelar
+const valoresOriginales = {};
+
+const campos = ['nombre', 'tipo', 'cantidad', 'valor_compra', 'valor', 'umbral_alerta'];
+
+function habilitarEdicion() {
+    // Guardar valores originales
+    campos.forEach(id => {
+        const el = document.getElementById(id);
+        valoresOriginales[id] = el.tagName === 'SELECT' ? el.value : el.value;
+    });
+
+    // Habilitar campos
+    campos.forEach(id => {
+        document.getElementById(id).disabled = false;
+    });
+
+    // Mostrar/ocultar botones
+    document.getElementById('botonesGuardar').style.display = 'flex';
+    document.getElementById('botonesGuardar').style.flexDirection = 'column';
+    document.getElementById('botonesGuardar').style.gap = '8px';
+    document.getElementById('botonVolver').style.display = 'none';
+    document.getElementById('btnEditar').style.display = 'none';
+}
+
+function cancelarEdicion() {
+    // Restaurar valores originales
+    campos.forEach(id => {
+        const el = document.getElementById(id);
+        el.value = valoresOriginales[id];
+        el.disabled = true;
+    });
+
+    // Restaurar botones
+    document.getElementById('botonesGuardar').style.display = 'none';
+    document.getElementById('botonVolver').style.display = '';
+    document.getElementById('btnEditar').style.display = '';
+
+    calcular();
+}
+
+// Calcular ganancia
+const compra = document.getElementById('valor_compra');
+const venta  = document.getElementById('valor');
+const gananciaSpan = document.getElementById('ganancia');
+const margenSpan   = document.getElementById('margen');
+
+function calcular() {
+    const c = parseFloat(compra.value) || 0;
+    const v = parseFloat(venta.value)  || 0;
+    const g = v - c;
+    gananciaSpan.textContent = '$' + g.toFixed(2);
+    const m = c > 0 ? ((g / c) * 100).toFixed(1) : 0;
+    margenSpan.textContent = m + '%';
+}
+
+compra.addEventListener('input', calcular);
+venta.addEventListener('input', calcular);
+calcular();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,302 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Stockarce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --amarillo: #F5C518;
+            --gris-oscuro: #2c2c2c;
+            --gris-medio: #666;
+            --gris-claro: #f5f5f5;
+            --shadow: 0 6px 28px rgba(0,0,0,0.10);
+        }
+
+        body {
+            font-family: 'Barlow', sans-serif;
+            background: #e8e8e8;
+            padding-bottom: 50px;
+        }
+
+        /* ── LOGO (Mismo estilo que el recibo) ── */
+.logo-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .logo-carrito svg {
+            width: 52px;
+            height: 52px;
+        }
+        .logo-texto .nombre {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 800;
+            font-size: 28px;
+            line-height: 1;
+            color: var(--gris-oscuro);
+            letter-spacing: -0.5px;
+        }
+        .logo-texto .nombre span { color: var(--amarillo); }
+        .logo-texto .sub  { font-size: 10px; letter-spacing: 2px; color: var(--gris-medio); text-transform: uppercase; margin-top: 1px; }
+        .logo-texto .tag  { font-size: 9px;  letter-spacing: 0.5px; color: #aaa; }
+
+
+        /* ── NAVBAR ── */
+        .navbar-custom {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 4px solid var(--amarillo);
+        }
+
+        /* ── TITULO PANEL ── */
+        .lista-header h1 {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 800;
+            font-size: 32px;
+            color: var(--gris-oscuro);
+            text-transform: uppercase;
+        }
+
+        /* ── GRID DE ACCESO ── */
+        .panel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .menu-card {
+            background: white;
+            border: none;
+            border-radius: 18px;
+            padding: 25px !important;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all .2s ease-in-out;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            background: #fffbea;
+        }
+
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            font-size: 28px;
+            margin-bottom: 15px;
+            background: var(--gris-claro);
+        }
+
+        .menu-card h5 {
+            font-weight: 700;
+            color: var(--gris-oscuro);
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── BOTONES ── */
+        .btn-action {
+            background: var(--gris-oscuro);
+            color: var(--amarillo);
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            padding: 8px 0;
+            width: 100%;
+            font-size: 13px;
+        }
+        .menu-card:hover .btn-action {
+            background: var(--amarillo);
+            color: var(--gris-oscuro);
+        }
+
+        .btn-plus {
+            background: linear-gradient(135deg, var(--gris-oscuro) 0%, #444 100%);
+            color: var(--amarillo);
+            border: none;
+            padding: 18px;
+            border-radius: 15px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .btn-plus:hover {
+            color: white;
+            transform: scale(1.02);
+        }
+
+        .btn-salir {
+            border: 2px solid #ff4444;
+            color: #ff4444;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 5px 15px;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .btn-salir:hover { background: #ff4444; color: white; }
+
+        /* Card específica para chofer */
+        .card-logistica { border-left: 6px solid var(--amarillo); }
+    </style>
+</head>
+
+<body>
+
+<div class="container py-4">
+
+    <header class="navbar-custom">
+        <div class="logo-wrapper">
+            <div class="logo-carrito">
+                <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 12h10l12 38h36l8-28H28" stroke="#F5C518" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="logo-texto">
+                <div class="nombre">STOCKE<span>ARCE</span></div>
+                <div class="sub">Sistema de Gestión</div>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <div class="text-end d-none d-md-block">
+                <span style="font-weight: 800; color: var(--gris-oscuro); display: block; line-height: 1;">{{ user.username|upper }}</span>
+                <small style="color: var(--amarillo); font-weight: 700; text-transform: uppercase; font-size: 10px;">
+                    {% if user.perfilusuario.tipo == "camiones" %} Logística 
+                    {% elif user.perfilusuario.tipo == "ventas" %} Comercial
+                    {% else %} Administración {% endif %}
+                </small>
+            </div>
+            <a href="{% url 'logout' %}" class="btn-salir">SALIR</a>
+        </div>
+    </header>
+
+    <main>
+        
+        <div class="lista-header mb-4">
+            <h1>Panel de Control</h1>
+            <p style="color: var(--gris-medio); font-weight: 600;">Bienvenido al centro operativo de la distribuidora.</p>
+        </div>
+
+        {% if user.perfilusuario.tipo == "camiones" %}
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <a href="{% url 'panel_chofer' %}" class="menu-card card-logistica">
+                    <div class="icon-box" style="background: #fffbea; color: #d97706;">🚚</div>
+                    <h3>Panel de Logística</h3>
+                    <p class="text-muted">Accedé a tus hojas de ruta y entregas pendientes.</p>
+                    <div class="btn-action py-3">INGRESAR A MIS RUTAS</div>
+                </a>
+            </div>
+        </div>
+
+        {% else %}
+
+        <div class="panel-grid">
+
+    {% if user.perfilusuario.tipo == "administrativo" or user.perfilusuario.tipo == "ventas" or user.is_superuser %}
+    <a href="{% url 'lista_productos' %}" class="menu-card">
+        <div class="icon-box" style="background: #f1f5f9; color: var(--gris-oscuro);">📦</div>
+        <h5>Inventario</h5>
+        <div class="btn-action">VER STOCK</div>
+    </a>
+    {% endif %}
+
+    {% if user.perfilusuario.tipo == "ventas" or user.is_superuser %}
+    <a href="{% url 'lista_ventas' %}" class="menu-card">
+        <div class="icon-box" style="background: #ecfdf5; color: #10b981;">💰</div>
+        <h5>Ventas</h5>
+        <div class="btn-action">PEDIDOS</div>
+    </a>
+    {% endif %}
+
+    {% if user.perfilusuario.tipo == "administrativo" or user.is_superuser %}
+<a href="{% url 'asignar_envios_pendientes' %}" class="menu-card">
+    <div class="icon-box" style="background: #eff6ff; color: #3b82f6;">🚚</div>
+    <h5>Logística</h5>
+    <div class="btn-action">ASIGNAR ENVÍOS</div>
+</a>
+{% endif %}
+    {% if user.perfilusuario.tipo == "administrativo" or user.is_superuser %}
+    <a href="{% url 'lista_choferes' %}" class="menu-card">
+        <div class="icon-box" style="background: #fffbea; color: var(--amarillo);">👷</div>
+        <h5>CHOFERES</h5>
+        <div class="btn-action">GESTIONAR</div>
+    </a>
+    {% endif %}
+
+    {% if user.perfilusuario.tipo == "administrativo" or user.perfilusuario.tipo == "ventas" or user.is_superuser %}
+    <a href="/clientes/" class="menu-card">
+        <div class="icon-box" style="background: #f8fafc; color: #64748b;">👥</div>
+        <h5>Clientes</h5>
+        <div class="btn-action">CARTERA</div>
+    </a>
+    {% endif %}
+
+    <!-- NUEVO BOTON PARA SUBIR IMAGEN -->
+    {% if user.perfilusuario.tipo == "administrativo" or user.is_superuser %}
+    <a href="{% url 'subir_imagen' %}" class="menu-card">
+        <div class="icon-box" style="background:#fff7ed;color:#ea580c;">📷</div>
+        <h5>Subir Imagen</h5>
+        <div class="btn-action">CARGAR FOTO</div>
+    </a>
+    {% endif %}
+
+</div>
+
+        <div class="row mt-5 g-4">
+            <div class="col-12">
+                <div style="font-size:11px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--gris-medio); margin-bottom:15px; padding-left: 5px;">
+                    Acciones de Acceso Rápido
+                </div>
+            </div>
+            
+            {% if user.perfilusuario.tipo == "ventas" or user.is_superuser %}
+            <div class="col-md-6">
+                <a href="{% url 'crear_venta' %}" class="btn btn-plus w-100 d-flex align-items-center justify-content-center gap-3">
+                    <span style="font-size: 24px;">➕</span> REGISTRAR NUEVA VENTA
+                </a>
+            </div>
+            {% endif %}
+
+            {% if user.perfilusuario.tipo == "administrativo" or user.is_superuser %}
+            <div class="col-md-6">
+                <a href="{% url 'consultar_ventas' %}" class="btn btn-plus w-100 d-flex align-items-center justify-content-center gap-3" style="background: white; color: var(--gris-oscuro); border: 3px solid var(--gris-oscuro);">
+                    <span style="font-size: 24px;">📊</span> REPORTE OPERATIVO
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        {% endif %}
+
+    </main>
+</div>
+
+</body>
+</html>

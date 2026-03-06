@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Producto - Sistema Amarce</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Nuevo Producto</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label">Nombre del Producto</label>
+                                <input type="text" name="nombre" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tipo / Categoría</label>
+                                <select name="tipo" class="form-select" required>
+                                    {% for t in tipos %}
+                                    <option value="{{ t.id }}">{{ t.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Cantidad Inicial</label>
+                                    <input type="number" name="cantidad" class="form-control" value="0" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Precio de Compra</label>
+                                    <input type="number" step="0.01" name="valor_compra" class="form-control" value="0.00" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Precio de Venta</label>
+                                    <input type="number" step="0.01" name="valor" class="form-control" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Umbral de Alerta</label>
+                                    <input type="number" name="umbral_alerta" class="form-control" value="5">
+                                </div>
+                            </div>
+                            <div class="alert alert-info">
+                                <small class="text-muted">
+                                    <strong>💰 Ganancia estimada:</strong> 
+                                    <span id="ganancia">$0.00</span> | 
+                                    <strong>📊 Margen:</strong> 
+                                    <span id="margen">0%</span>
+                                </small>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Guardar Producto</button>
+                                <a href="{% url 'lista_productos' %}" class="btn btn-outline-secondary">Cancelar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Calcular ganancia en tiempo real
+        document.addEventListener('DOMContentLoaded', function() {
+            const precioCompra = document.querySelector('input[name="valor_compra"]');
+            const precioVenta = document.querySelector('input[name="valor"]');
+            const gananciaSpan = document.getElementById('ganancia');
+            const margenSpan = document.getElementById('margen');
+            
+            function calcular() {
+                const compra = parseFloat(precioCompra.value) || 0;
+                const venta = parseFloat(precioVenta.value) || 0;
+                
+                const ganancia = venta - compra;
+                gananciaSpan.textContent = '$' + ganancia.toFixed(2);
+                
+                const margen = compra > 0 ? ((ganancia / compra) * 100).toFixed(1) : 0;
+                margenSpan.textContent = margen + '%';
+            }
+            
+            precioCompra.addEventListener('input', calcular);
+            precioVenta.addEventListener('input', calcular);
+            
+            calcular();
+        });
+    </script>
+</body>
+</html>
