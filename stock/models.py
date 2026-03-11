@@ -17,7 +17,7 @@ class Producto(models.Model):
     nombre = models.CharField(max_length=100)
     tipo = models.ForeignKey(TipoProducto, on_delete=models.CASCADE)
 
-    cantidad = models.PositiveIntegerField(default=0)
+    cantidad = models.IntegerField(default=0)
     
     # PRECIO DE VENTA (ya existe)
     valor = models.DecimalField(max_digits=10, decimal_places=2)
@@ -59,7 +59,55 @@ class ImagenProducto(models.Model):
     def __str__(self):
         return f"Imagen {self.id} - {self.producto.nombre}"
 
+class PresentacionProducto(models.Model):
+    """
+    Define las presentaciones disponibles para un producto.
+    Ej: Unidad x1, Pack x6, Pack x8, Caja x24, etc.
+    """
+    producto = models.ForeignKey(
+        Producto,
+        on_delete=models.CASCADE,
+        related_name='presentaciones'
+    )
+    nombre = models.CharField(
+        max_length=100,
+        verbose_name="Nombre de Presentación",
+        help_text="Ej: Unidad, Pack x6, Pack x8, Caja x24"
+    )
+    cantidad_unidades = models.PositiveIntegerField(
+        verbose_name="Cantidad de Unidades",
+        help_text="Cuántas unidades de stock representa esta presentación"
+    )
+    precio_venta = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Precio de Venta"
+    )
+    precio_compra = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        verbose_name="Precio de Compra"
+    )
+    activo = models.BooleanField(default=True)
 
+    @property
+    def ganancia_unitaria(self):
+        return float(self.precio_venta) - float(self.precio_compra)
+
+    @property
+    def margen_porcentaje(self):
+        if float(self.precio_compra) > 0:
+            return round((self.ganancia_unitaria / float(self.precio_compra)) * 100, 2)
+        return 0
+
+    class Meta:
+        verbose_name = "Presentación de Producto"
+        verbose_name_plural = "Presentaciones de Producto"
+        unique_together = ('producto', 'nombre')
+
+    def __str__(self):
+        return f"{self.producto.nombre} - {self.nombre} (x{self.cantidad_unidades}) ${self.precio_venta}"
 # ------------------------------
 #  MODELO: Cliente
 # ------------------------------
@@ -266,22 +314,28 @@ class Ventas(models.Model):
         ordering = ['-fecha_creacion']
 
 class DetalleVenta(models.Model):
-    """
-    Detalle de productos en la venta
-    """
     venta = models.ForeignKey(Ventas, on_delete=models.CASCADE, related_name='detalles')
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    cantidad = models.PositiveIntegerField()
+    
+    # 🆕 Presentación elegida al momento de vender
+    presentacion = models.ForeignKey(
+        PresentacionProducto,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Presentación"
+    )
+    
+    cantidad = models.PositiveIntegerField()  # Cantidad de esa presentación
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
-    
-    class Meta:
-        verbose_name = "Detalle de Venta"
-        verbose_name_plural = "Detalles de Ventas"
-    
-    def __str__(self):
-        return f"{self.cantidad}x {self.producto.nombre} - ${self.subtotal}"
 
+    @property
+    def unidades_totales_descontadas(self):
+        """Cuántas unidades reales se descuentan del stock"""
+        if self.presentacion:
+            return self.cantidad * self.presentacion.cantidad_unidades
+        return self.cantidad
 
 
 

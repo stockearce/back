@@ -286,7 +286,6 @@
         .estado-final .texto { font-size: 18px; font-weight: 700; color: #555; }
     </style>
 </head>
-
 <body>
 
     <!-- HEADER -->
@@ -342,7 +341,16 @@
             {% for detalle in detalles %}
             <div class="producto-item">
                 <span class="producto-nombre">{{ detalle.producto.nombre }}</span>
-                <span class="producto-cant">x{{ detalle.cantidad }}</span>
+                <!-- 🆕 Presentación si existe -->
+                {% if detalle.presentacion %}
+                <span class="producto-presentacion">{{ detalle.presentacion.nombre }}</span>
+                {% endif %}
+                <span class="producto-cant">
+                    x{{ detalle.cantidad }}
+                    {% if detalle.presentacion %}
+                        <small style="color:#aaa;">({{ detalle.unidades_totales_descontadas }} u.)</small>
+                    {% endif %}
+                </span>
                 <span class="producto-subtotal">${{ detalle.subtotal }}</span>
             </div>
             {% endfor %}

@@ -146,13 +146,15 @@
                     </div>
 
                     <div style="font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#aaa; margin-bottom:10px;">Productos</div>
+
+                    <!-- TABLA PRODUCTOS -->
                     <table class="table tabla-prod" id="tabla-productos">
                         <thead>
                             <tr>
                                 <th>Producto</th>
-                                <th>Medida</th>
+                                <th>Presentación</th>
                                 <th>Cant.</th>
-                                <th>Packs</th>
+                                <th>Unidades</th>
                                 <th>Precio Unit.</th>
                                 <th>Subtotal</th>
                             </tr>
@@ -161,15 +163,15 @@
                             {% for detalle in detalles %}
                             <tr class="fila-producto"
                                 data-nombre="{{ detalle.producto.nombre }}"
-                                data-medida="{{ detalle.producto.medida|default:'' }}"
+                                data-presentacion="{{ detalle.presentacion.nombre|default:'Unidad' }}"
                                 data-cantidad="{{ detalle.cantidad }}"
-                                data-packs="{{ detalle.packs|default:'' }}"
+                                data-unidades="{{ detalle.unidades_totales_descontadas }}"
                                 data-precio="{{ detalle.precio_unitario }}"
                                 data-subtotal="{{ detalle.subtotal }}">
                                 <td>{{ detalle.producto.nombre }}</td>
-                                <td>{{ detalle.producto.medida|default:"-" }}</td>
+                                <td>{{ detalle.presentacion.nombre|default:"Unidad" }}</td>
                                 <td>{{ detalle.cantidad }}</td>
-                                <td>{{ detalle.packs|default:"-" }}</td>
+                                <td>{{ detalle.unidades_totales_descontadas }}</td>
                                 <td>${{ detalle.precio_unitario }}</td>
                                 <td><strong>${{ detalle.subtotal }}</strong></td>
                             </tr>
@@ -191,7 +193,7 @@
         </div>
 
         <div class="col-md-4">
-            {% if venta.estado in 'pendiente,confirmada' %}
+            {% if venta.estado == 'pendiente' or venta.estado == 'confirmada' %}
             <div class="card-chofer">
                 <div class="ch-header">
                     <h5>🚚 Asignar Chofer</h5>
@@ -236,41 +238,30 @@
         }, 120);
     });
 
-    // ─────────────────────────────────────────────
-    //  Dibuja el carrito vectorial en el PDF
-    //  ox, oy = esquina sup-izq (mm), sc = escala
-    // ─────────────────────────────────────────────
-   function dibujarCarrito(doc, ox, oy, sc, color) {
-    doc.setDrawColor(...color);
-    doc.setFillColor(...color);
-    doc.setLineCap('round');
-    doc.setLineJoin('round');
+    function dibujarCarrito(doc, ox, oy, sc, color) {
+        doc.setDrawColor(...color);
+        doc.setFillColor(...color);
+        doc.setLineCap('round');
+        doc.setLineJoin('round');
 
-    // ── Mango (línea corta arriba a la izquierda) ──
-    doc.setLineWidth(sc * 0.7);
-    doc.line(ox, oy + 1.5*sc,  ox + 2.5*sc, oy + 1.5*sc);   // horizontal
-    doc.line(ox + 2.5*sc, oy + 1.5*sc, ox + 3.5*sc, oy + 3.5*sc); // diagonal bajando
+        doc.setLineWidth(sc * 0.7);
+        doc.line(ox, oy + 1.5*sc,  ox + 2.5*sc, oy + 1.5*sc);
+        doc.line(ox + 2.5*sc, oy + 1.5*sc, ox + 3.5*sc, oy + 3.5*sc);
 
-    // ── Cuerpo trapezoide (base ancha, frente vertical, tapa) ──
-    // Tapa superior
-    doc.line(ox + 3.5*sc, oy + 3.5*sc,  ox + 14.5*sc, oy + 3.5*sc);
-    // Frente derecho (vertical)
-    doc.line(ox + 14.5*sc, oy + 3.5*sc, ox + 13.5*sc, oy + 8.5*sc);
-    // Base inferior
-    doc.line(ox + 13.5*sc, oy + 8.5*sc, ox + 4.5*sc,  oy + 8.5*sc);
-    // Frente izquierdo (diagonal suave)
-    doc.line(ox + 4.5*sc,  oy + 8.5*sc, ox + 3.5*sc,  oy + 3.5*sc);
+        doc.line(ox + 3.5*sc, oy + 3.5*sc,  ox + 14.5*sc, oy + 3.5*sc);
+        doc.line(ox + 14.5*sc, oy + 3.5*sc, ox + 13.5*sc, oy + 8.5*sc);
+        doc.line(ox + 13.5*sc, oy + 8.5*sc, ox + 4.5*sc,  oy + 8.5*sc);
+        doc.line(ox + 4.5*sc,  oy + 8.5*sc, ox + 3.5*sc,  oy + 3.5*sc);
 
-    // ── Ruedas (círculos pequeños rellenos) ──
-    doc.setLineWidth(0.1);
-    doc.circle(ox + 6*sc,   oy + 10.5*sc, sc * 0.85, 'F');
-    doc.circle(ox + 12*sc,  oy + 10.5*sc, sc * 0.85, 'F');
-}
+        doc.setLineWidth(0.1);
+        doc.circle(ox + 6*sc,   oy + 10.5*sc, sc * 0.85, 'F');
+        doc.circle(ox + 12*sc,  oy + 10.5*sc, sc * 0.85, 'F');
+    }
+
     function generarPDFVenta() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ unit: 'mm', format: 'a4' });
 
-        // ── Datos del DOM ──
         const cliente       = document.getElementById('dato-cliente')?.innerText.trim()      || '';
         const localNombre   = document.getElementById('dato-local')?.innerText.trim()        || '';
         const direccion     = document.getElementById('dato-direccion')?.innerText.trim()    || 'Sin dirección';
@@ -283,19 +274,19 @@
         const fechaEnvio    = document.getElementById('dato-fecha-envio')?.innerText.trim()  || '';
         const horaEnvio     = document.getElementById('dato-hora-envio')?.innerText.trim()   || '';
 
+        // 🆕 Leer presentacion y unidades
         const productos = [];
         document.querySelectorAll('.fila-producto').forEach(f => {
             productos.push({
-                nombre:   f.dataset.nombre,
-                medida:   f.dataset.medida   || '-',
-                cantidad: f.dataset.cantidad,
-                packs:    f.dataset.packs    || '-',
-                precio:   f.dataset.precio   || '',
-                subtotal: f.dataset.subtotal || '',
+                nombre:       f.dataset.nombre,
+                presentacion: f.dataset.presentacion || 'Unidad',
+                cantidad:     f.dataset.cantidad,
+                unidades:     f.dataset.unidades,
+                precio:       f.dataset.precio   || '',
+                subtotal:     f.dataset.subtotal || '',
             });
         });
 
-        // ── Paleta ──
         const AM  = [245, 197, 24];
         const OS  = [44,  44,  44];
         const BL  = [255, 255, 255];
@@ -306,22 +297,16 @@
         const ML = 10;
         const TW = PW - ML - 10;
 
-        // ════════════════════════════════════════
-        //  ENCABEZADO
-        // ════════════════════════════════════════
         let y = 8;
         const logoBoxW = TW * 0.44;
         const logoBoxH = 24;
 
-        // Caja blanca logo
         doc.setFillColor(...BL);
         doc.setDrawColor(...BOR);
         doc.rect(ML, y, logoBoxW, logoBoxH, 'FD');
 
-        // Carrito vectorial
         dibujarCarrito(doc, ML + 2, y + 3.5, 1.1, AM);
 
-        // Texto STOCKEARCE
         const txtX = ML + 19;
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(15);
@@ -337,7 +322,6 @@
         doc.text('DISTRIBUIDORA MAYORISTA',    txtX, y + 15.5);
         doc.text('STOCKEARCE AL MEJOR PRECIO', txtX, y + 20);
 
-        // Caja amarilla "RECIBO DE ENTREGA"
         const rX = ML + logoBoxW + 2;
         const rW = TW - logoBoxW - 2;
         doc.setFillColor(...AM);
@@ -349,9 +333,6 @@
 
         y += logoBoxH + 4;
 
-        // ════════════════════════════════════════
-        //  TABLA INFO
-        // ════════════════════════════════════════
         const ROW_H = 7.5;
         const LAB_W = 45;
 
@@ -381,16 +362,14 @@
 
         y += 4;
 
-        // ════════════════════════════════════════
-        //  TABLA PRODUCTOS
-        // ════════════════════════════════════════
+        // 🆕 Columnas actualizadas
         const cols = [
             { label: 'Producto',        w: 55, align: 'left'   },
-            { label: 'Medida',          w: 20, align: 'center' },
-            { label: 'Cantidad',        w: 22, align: 'center' },
-            { label: 'PACKS',           w: 18, align: 'center' },
-            { label: 'Precio Unitario', w: 38, align: 'center' },
-            { label: 'Precio Total',    w: 37, align: 'right'  },
+            { label: 'Presentación',    w: 28, align: 'center' },
+            { label: 'Cantidad',        w: 20, align: 'center' },
+            { label: 'Unidades',        w: 20, align: 'center' },
+            { label: 'Precio Unitario', w: 35, align: 'center' },
+            { label: 'Precio Total',    w: 32, align: 'right'  },
         ];
         let cx = ML;
         cols.forEach(c => { c.x = cx; cx += c.w; });
@@ -428,11 +407,12 @@
             cols.forEach(c => {
                 if (c.x > ML) doc.line(c.x, y, c.x, y + RH);
 
+                // 🆕 Valores actualizados
                 let val = '';
                 if      (c.label === 'Producto')        val = p.nombre;
-                else if (c.label === 'Medida')          val = p.medida;
+                else if (c.label === 'Presentación')    val = p.presentacion;
                 else if (c.label === 'Cantidad')        val = p.cantidad;
-                else if (c.label === 'PACKS')           val = p.packs;
+                else if (c.label === 'Unidades')        val = p.unidades;
                 else if (c.label === 'Precio Unitario') val = p.precio ? '$ ' + p.precio : '';
                 else if (c.label === 'Precio Total')    val = p.subtotal ? '$' + p.subtotal : '';
 
@@ -450,7 +430,6 @@
             y += RH;
         });
 
-        // Fila TOTAL
         const FT = 10;
         doc.setFillColor(...AM);
         doc.rect(ML, y, TW, FT, 'F');
@@ -464,9 +443,6 @@
         doc.text('$' + total, ML + TW - 2, y + 7, { align: 'right' });
         y += FT + 6;
 
-        // ════════════════════════════════════════
-        //  OBSERVACIONES / COBRANZA
-        // ════════════════════════════════════════
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(8.5);
         doc.setTextColor(...OS);
@@ -513,9 +489,6 @@
 
         y += 5;
 
-        // ════════════════════════════════════════
-        //  RECIBIDO POR
-        // ════════════════════════════════════════
         if (y + 38 > 280) { doc.addPage(); y = 15; }
 
         doc.setFillColor(252, 252, 252);
@@ -540,7 +513,6 @@
         linea('DNI / Identificación:', 26);
         linea('Firma de Recibido:',    37);
 
-        // Footer
         doc.setFontSize(7);
         doc.setTextColor(180, 180, 180);
         doc.text('STOCKEARCE — Distribuidora Mayorista — Al mejor precio', PW / 2, 291, { align: 'center' });

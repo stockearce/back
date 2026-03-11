@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Venta - Sistema STOCKEARCE</title>
+    <title>Crear Venta - STOCKEARCE</title>
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -30,9 +30,8 @@
             padding-bottom: 60px;
             -webkit-font-smoothing: antialiased;
         }
-        .container { max-width:900px; margin:0 auto; padding:20px; }
+        .container { max-width:960px; margin:0 auto; padding:20px; }
 
-        /* NAVBAR */
         .navbar-custom {
             background:white; padding:15px 25px; border-radius:15px;
             box-shadow:var(--sombra-md); margin-bottom:30px;
@@ -59,36 +58,34 @@
         }
         .btn-salir:hover { background:var(--peligro); color:white; }
 
-        /* CARD */
-        .card-venta { background:white; border-radius:18px; box-shadow:var(--sombra-md); overflow:hidden; }
+        .card-venta { background:white; border-radius:18px; box-shadow:var(--sombra-md); overflow:hidden; margin-bottom:20px; }
         .card-header-amarce {
-            background:var(--gris-oscuro); padding:25px 30px;
+            background:var(--gris-oscuro); padding:22px 30px;
             display:flex; align-items:center; gap:15px;
             border-bottom:4px solid var(--amarillo);
         }
         .card-header-amarce h3 {
             font-family:'Barlow Condensed',sans-serif; font-weight:800;
-            font-size:26px; color:white; margin:0; text-transform:uppercase;
+            font-size:24px; color:white; margin:0; text-transform:uppercase;
         }
-        .icono-header { font-size:32px; }
+        .icono-header { font-size:28px; }
         .card-body { padding:30px; }
-        .mb-4 { margin-bottom:24px; }
 
         .form-label {
-            display:block; font-weight:700; font-size:13px;
-            margin-bottom:10px; color:var(--gris-oscuro);
+            display:block; font-weight:700; font-size:12px;
+            margin-bottom:8px; color:var(--gris-oscuro);
             text-transform:uppercase; letter-spacing:1px;
         }
         .text-danger { color:var(--peligro); }
+        .mb-4 { margin-bottom:24px; }
+        .mb-3 { margin-bottom:16px; }
 
-        /* AUTOCOMPLETE */
         .autocomplete-wrapper { position:relative; }
-
         .autocomplete-input {
             width:100%; padding:14px 46px;
             font-size:15px; font-family:'Barlow',sans-serif;
             color:var(--gris-oscuro); background:white;
-            border:2px solid var(--gris-claro); border-radius:12px;
+            border:2px solid #e0e0e0; border-radius:12px;
             transition:var(--transicion);
         }
         .autocomplete-input:focus {
@@ -97,7 +94,6 @@
         }
         .autocomplete-input.valido   { border-color:var(--exito); background:#f0fdf4; }
         .autocomplete-input.invalido { border-color:var(--peligro); background:#fef2f2; }
-
         .ac-icon {
             position:absolute; left:15px; top:50%;
             transform:translateY(-50%); font-size:18px; pointer-events:none; z-index:2;
@@ -108,7 +104,6 @@
             font-weight:800; color:var(--exito); display:none; z-index:2;
         }
         .autocomplete-input.valido ~ .ac-check { display:block; }
-
         .autocomplete-dropdown {
             position:absolute; top:calc(100% + 6px); left:0; right:0;
             background:white; border:2px solid var(--amarillo);
@@ -116,7 +111,6 @@
             z-index:9999; max-height:280px; overflow-y:auto; display:none;
         }
         .autocomplete-dropdown.show { display:block; }
-
         .ac-item {
             padding:12px 16px; cursor:pointer;
             border-bottom:1px solid var(--gris-claro);
@@ -124,24 +118,18 @@
         }
         .ac-item:last-child { border-bottom:none; }
         .ac-item:hover, .ac-item.activo { background:var(--amarillo-claro); }
-
         .ac-nombre { font-weight:700; font-size:15px; }
         .ac-detalle { font-size:12px; color:var(--gris-medio); margin-top:2px; }
         .ac-badges { display:flex; gap:8px; flex-wrap:wrap; margin-top:5px; }
         .ac-badge {
             display:inline-flex; align-items:center; gap:4px;
-            background:var(--amarillo-suave); padding:2px 8px;
+            background:var(--amarillo-suave); padding:3px 10px;
             border-radius:6px; font-size:11px; font-weight:700;
         }
         .ac-badge.sin-stock { background:#fef2f2; color:var(--peligro); }
-
-        .ac-loading, .ac-empty {
-            padding:18px; text-align:center; color:var(--gris-medio); font-size:14px;
-        }
-
+        .ac-loading, .ac-empty { padding:18px; text-align:center; color:var(--gris-medio); font-size:14px; }
         .highlight { background:var(--amarillo); border-radius:3px; padding:0 2px; }
 
-        /* Error message debajo del campo */
         .campo-error {
             font-size:12px; font-weight:600; color:var(--peligro);
             margin-top:7px; display:none; align-items:center; gap:5px;
@@ -149,67 +137,94 @@
         .campo-error.show { display:flex; }
         .campo-error::before { content:"⚠️"; }
 
-        /* PRODUCTOS */
         .productos-section {
-            background:var(--gris-claro); border-radius:15px; padding:25px;
+            background:var(--gris-claro); border-radius:15px; padding:20px;
         }
         .producto-item {
-            background:white; border-radius:12px; padding:20px;
+            background:white; border-radius:14px; padding:20px;
             margin-bottom:15px; box-shadow:var(--sombra-sm);
             border:2px solid transparent; transition:var(--transicion);
         }
-        .producto-item:hover { border-color:var(--amarillo-suave); }
-        .prod-grid {
-            display:grid; grid-template-columns:1fr 140px 50px; gap:15px; align-items:start;
+        .producto-item:hover { border-color:rgba(245,197,24,0.3); }
+
+        .prod-grid-top {
+            display:grid; grid-template-columns:1fr 44px;
+            gap:12px; align-items:start; margin-bottom:14px;
+        }
+        .prod-grid-bottom {
+            display:grid; grid-template-columns:1fr 140px;
+            gap:12px; align-items:start;
         }
 
         .form-control {
-            width:100%; padding:14px 18px; font-size:15px;
+            width:100%; padding:12px 16px; font-size:14px;
             font-family:'Barlow',sans-serif; color:var(--gris-oscuro);
-            background:white; border:2px solid var(--gris-claro);
-            border-radius:12px; transition:var(--transicion);
+            background:white; border:2px solid #e0e0e0;
+            border-radius:10px; transition:var(--transicion);
         }
         .form-control:focus {
             outline:none; border-color:var(--amarillo);
-            box-shadow:0 0 0 4px rgba(245,197,24,0.15);
+            box-shadow:0 0 0 3px rgba(245,197,24,0.15);
         }
-        .cant-input { text-align:center; font-weight:700; }
-        .cant-input.error   { border-color:var(--peligro); background:#fef2f2; }
-        .cant-input.success { border-color:var(--exito);   background:#f0fdf4; }
 
-        .stock-msg { font-size:12px; font-weight:600; margin-top:6px; display:none; align-items:center; gap:5px; }
-        .stock-msg.ok    { display:flex; color:var(--exito); }
-        .stock-msg.ok::before { content:"✓"; font-weight:900; }
-        .stock-msg.error { display:flex; color:var(--peligro); }
-        .stock-msg.error::before { content:"⚠️"; }
+        .pres-select {
+            background:white; border:2px solid var(--amarillo);
+            border-radius:10px; padding:12px 16px;
+            font-size:14px; font-family:'Barlow',sans-serif;
+            font-weight:600; color:var(--gris-oscuro);
+            width:100%; cursor:pointer; transition:var(--transicion);
+        }
+        .pres-select:focus { outline:none; box-shadow:0 0 0 3px rgba(245,197,24,0.2); }
+        .pres-select.error { border-color:var(--peligro); background:#fef2f2; }
+
+        .pres-wrapper { width:100%; }
+        .pres-label, .cant-label {
+            font-size:11px; font-weight:700; text-transform:uppercase;
+            letter-spacing:1px; color:var(--gris-medio); margin-bottom:6px; display:block;
+        }
+        .cant-wrapper { width:100%; }
+        .cant-input { text-align:center; font-weight:700; font-size:16px; }
+        .cant-input.advertencia { border-color:#f59e0b; background:#fffbeb; }
+        .cant-input.success     { border-color:var(--exito); background:#f0fdf4; }
+
+        .stock-msg {
+            font-size:11px; font-weight:600; margin-top:5px;
+            display:none; align-items:center; gap:4px;
+        }
+        .stock-msg.ok          { display:flex; color:var(--exito); }
+        .stock-msg.advertencia { display:flex; color:#f59e0b; }
 
         .btn-remove {
             width:44px; height:44px; border-radius:10px;
-            border:2px solid var(--peligro); background:transparent;
-            color:var(--peligro); font-size:18px; cursor:pointer;
+            border:2px solid #e0e0e0; background:transparent;
+            color:var(--gris-medio); font-size:16px; cursor:pointer;
             transition:var(--transicion); display:flex;
             align-items:center; justify-content:center;
         }
-        .btn-remove:hover:not(:disabled) { background:var(--peligro); color:white; }
-        .btn-remove:disabled { opacity:0.3; cursor:not-allowed; border-color:var(--gris-medio); color:var(--gris-medio); }
+        .btn-remove:hover:not(:disabled) { background:var(--peligro); color:white; border-color:var(--peligro); }
+        .btn-remove:disabled { opacity:0.25; cursor:not-allowed; }
 
         .btn-agregar {
-            width:100%; padding:16px; background:transparent;
-            border:2px dashed var(--gris-medio); color:var(--gris-medio);
-            border-radius:12px; font-weight:700; font-size:14px;
+            width:100%; padding:14px; background:transparent;
+            border:2px dashed #ccc; color:var(--gris-medio);
+            border-radius:12px; font-weight:700; font-size:13px;
             cursor:pointer; transition:var(--transicion);
-            text-transform:uppercase; letter-spacing:0.5px; margin-top:10px;
+            text-transform:uppercase; letter-spacing:0.5px; margin-top:5px;
         }
         .btn-agregar:hover { border-color:var(--amarillo); color:var(--gris-oscuro); background:var(--amarillo-claro); }
 
-        textarea.form-control { min-height:100px; resize:vertical; }
-        .notas-section { margin-top:25px; }
+        textarea.form-control { min-height:90px; resize:vertical; padding:14px 16px; }
 
-        /* BOTONES */
-        .acciones-finales { display:grid; gap:15px; margin-top:30px; }
+        .precio-badge {
+            display:inline-block; background:var(--amarillo);
+            color:var(--gris-oscuro); font-weight:800; font-size:13px;
+            padding:4px 12px; border-radius:20px; margin-top:6px;
+        }
+
+        .acciones-finales { display:grid; gap:12px; margin-top:28px; }
         .btn-principal {
             background:var(--gris-oscuro); color:var(--amarillo);
-            border:none; padding:20px; border-radius:15px;
+            border:none; padding:18px; border-radius:14px;
             font-family:'Barlow Condensed',sans-serif; font-weight:800;
             font-size:18px; text-transform:uppercase; letter-spacing:1px;
             cursor:pointer; transition:var(--transicion);
@@ -223,19 +238,18 @@
         .btn-principal:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
         .btn-secundario {
             background:white; color:var(--gris-medio);
-            border:2px solid var(--gris-claro); padding:16px;
-            border-radius:15px; font-weight:700; font-size:15px;
+            border:2px solid #e0e0e0; padding:14px;
+            border-radius:14px; font-weight:700; font-size:14px;
             text-align:center; text-decoration:none;
             transition:var(--transicion); display:block;
         }
         .btn-secundario:hover { border-color:var(--gris-medio); color:var(--gris-oscuro); }
 
         @media(max-width:768px) {
-            .container { padding:15px; }
-            .navbar-custom { flex-direction:column; gap:15px; }
-            .card-body { padding:20px; }
-            .prod-grid { grid-template-columns:1fr; gap:12px; }
-            .btn-remove { width:100%; height:44px; }
+            .container { padding:12px; }
+            .navbar-custom { flex-direction:column; gap:12px; }
+            .card-body { padding:18px; }
+            .prod-grid-bottom { grid-template-columns:1fr; }
         }
     </style>
 </head>
@@ -263,7 +277,6 @@
             <form method="POST" id="form-venta" novalidate>
                 {% csrf_token %}
 
-                <!-- CLIENTE -->
                 <div class="mb-4">
                     <label class="form-label">Cliente <span class="text-danger">*</span></label>
                     <input type="hidden" name="cliente" id="cliente-id">
@@ -279,39 +292,43 @@
                     <div class="campo-error" id="cliente-error">Seleccioná un cliente de la lista</div>
                 </div>
 
-                <!-- PRODUCTOS -->
                 <div class="mb-4">
                     <label class="form-label">Productos <span class="text-danger">*</span></label>
                     <div class="productos-section">
                         <div id="productos-container">
-
                             <div class="producto-item">
-                                <div class="prod-grid">
+                                <input type="hidden" name="productos" class="prod-id">
+                                <input type="hidden" name="presentaciones" class="pres-id">
+                                <div class="prod-grid-top">
                                     <div>
-                                        <input type="hidden" name="productos" class="prod-id">
                                         <div class="autocomplete-wrapper">
                                             <span class="ac-icon">📦</span>
-                                            <input type="text"
-                                                   class="autocomplete-input prod-input"
-                                                   placeholder="Buscá un producto..."
-                                                   autocomplete="off">
+                                            <input type="text" class="autocomplete-input prod-input"
+                                                   placeholder="Buscá un producto..." autocomplete="off">
                                             <span class="ac-check">✓</span>
                                             <div class="autocomplete-dropdown prod-dropdown"></div>
                                         </div>
                                         <div class="campo-error prod-error">Seleccioná un producto de la lista</div>
                                     </div>
-                                    <div>
+                                    <button type="button" class="btn-remove remove-prod" disabled>✕</button>
+                                </div>
+                                <div class="prod-grid-bottom">
+                                    <div class="pres-wrapper" style="display:none;">
+                                        <span class="pres-label">📦 Presentación</span>
+                                        <select class="pres-select">
+                                            <option value="">-- Seleccioná presentación --</option>
+                                        </select>
+                                        <div class="precio-badge" style="display:none;"></div>
+                                    </div>
+                                    <div class="cant-wrapper">
+                                        <span class="cant-label">Cantidad</span>
                                         <input type="number" name="cantidades"
                                                class="form-control cant-input"
-                                               placeholder="Cant." min="1">
+                                               placeholder="0" min="1">
                                         <div class="stock-msg"></div>
-                                    </div>
-                                    <div>
-                                        <button type="button" class="btn-remove remove-prod" disabled>✕</button>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                         <button type="button" class="btn-agregar" id="btn-agregar">
                             + Agregar otro producto
@@ -319,10 +336,9 @@
                     </div>
                 </div>
 
-                <!-- NOTAS -->
-                <div class="notas-section">
+                <div class="mb-3">
                     <label class="form-label">Notas / Observaciones</label>
-                    <textarea name="notas" class="form-control" rows="3"
+                    <textarea name="notas" class="form-control"
                               placeholder="Información adicional..."></textarea>
                 </div>
 
@@ -338,31 +354,22 @@
 </div>
 
 <script>
-// ══════════════════════════════════════════════════
-//  UTILIDADES
-// ══════════════════════════════════════════════════
-// ══════════════════════════════════════════════════
-//  HABILITAR / DESHABILITAR BOTÓN EN TIEMPO REAL
-// ══════════════════════════════════════════════════
 function actualizarBoton() {
     const btn = document.getElementById('btn-crear');
-
-    // 1. Cliente seleccionado
     const clienteOk = acCliente.esValido();
 
-    // 2. Al menos un producto válido con cantidad válida y sin exceder stock
     const prodItems = document.querySelectorAll('.producto-item');
     let hayProdOk = false;
 
     prodItems.forEach(item => {
         const hidden  = item.querySelector('.prod-id');
         const cantEl  = item.querySelector('.cant-input');
-        const stock   = parseInt(cantEl.dataset.stock ?? -1);
         const cant    = parseInt(cantEl.value) || 0;
         const prodSel = !!hidden.value;
         const cantOk  = cant >= 1;
-        const stockOk = stock < 0 || cant <= stock;
-        if (prodSel && cantOk && stockOk) hayProdOk = true;
+
+        // ✅ Ya no bloquea por stock
+        if (prodSel && cantOk) hayProdOk = true;
     });
 
     const todo = clienteOk && hayProdOk;
@@ -372,12 +379,11 @@ function actualizarBoton() {
         : '<span>🔒</span> Completá cliente y producto';
 }
 
-// Observar el hidden del cliente (se setea cuando se selecciona de la lista)
 const _clienteHiddenEl = document.getElementById('cliente-id');
 const _clienteObs = new MutationObserver(actualizarBoton);
 _clienteObs.observe(_clienteHiddenEl, { attributes: true });
-// También al limpiar el texto del cliente
 document.getElementById('cliente-input').addEventListener('input', actualizarBoton);
+
 function resaltar(texto, q) {
     if (!q) return texto;
     const esc = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -390,9 +396,6 @@ function debounce(fn, el, ms = 260) {
     timers.set(el, setTimeout(fn, ms));
 }
 
-// ══════════════════════════════════════════════════
-//  MOTOR AUTOCOMPLETE AJAX
-// ══════════════════════════════════════════════════
 function crearAC({ inputEl, dropdownEl, hiddenEl, url, renderItem, onSelect }) {
     let items = [];
     let idx = -1;
@@ -441,15 +444,12 @@ function crearAC({ inputEl, dropdownEl, hiddenEl, url, renderItem, onSelect }) {
         err?.classList.remove('show');
     }
 
-    // Input
     inputEl.addEventListener('input', () => {
         const q = inputEl.value.trim();
         setValido(false);
         if (!q) { cerrar(); return; }
-
         dropdownEl.innerHTML = '<div class="ac-loading">⏳ Buscando...</div>';
         dropdownEl.classList.add('show');
-
         debounce(async () => {
             try {
                 const r = await fetch(`${url}?q=${encodeURIComponent(q)}`);
@@ -461,7 +461,6 @@ function crearAC({ inputEl, dropdownEl, hiddenEl, url, renderItem, onSelect }) {
         }, inputEl);
     });
 
-    // Teclado
     inputEl.addEventListener('keydown', e => {
         if (!dropdownEl.classList.contains('show')) return;
         if (e.key === 'ArrowDown') { e.preventDefault(); mover(1); }
@@ -470,7 +469,6 @@ function crearAC({ inputEl, dropdownEl, hiddenEl, url, renderItem, onSelect }) {
         else if (e.key === 'Escape') cerrar();
     });
 
-    // Click en item
     dropdownEl.addEventListener('mousedown', e => {
         const el = e.target.closest('.ac-item');
         if (!el) return;
@@ -478,7 +476,6 @@ function crearAC({ inputEl, dropdownEl, hiddenEl, url, renderItem, onSelect }) {
         elegir(items[parseInt(el.dataset.i)]);
     });
 
-    // Click fuera
     document.addEventListener('click', e => {
         if (!inputEl.contains(e.target) && !dropdownEl.contains(e.target)) {
             cerrar();
@@ -498,9 +495,6 @@ function crearAC({ inputEl, dropdownEl, hiddenEl, url, renderItem, onSelect }) {
     };
 }
 
-// ══════════════════════════════════════════════════
-//  CLIENTE
-// ══════════════════════════════════════════════════
 const acCliente = crearAC({
     inputEl:    document.getElementById('cliente-input'),
     dropdownEl: document.getElementById('cliente-dropdown'),
@@ -513,15 +507,57 @@ const acCliente = crearAC({
     onSelect: () => actualizarBoton()
 });
 
-// ══════════════════════════════════════════════════
-//  PRODUCTOS
-// ══════════════════════════════════════════════════
+function cargarPresentaciones(prodItem, presentaciones, stockTotal) {
+    const presWrapper = prodItem.querySelector('.pres-wrapper');
+    const presSelect  = prodItem.querySelector('.pres-select');
+    const presHidden  = prodItem.querySelector('.pres-id');
+    const cantEl      = prodItem.querySelector('.cant-input');
+    const precioBadge = prodItem.querySelector('.precio-badge');
+
+    presSelect.innerHTML = '<option value="">-- Seleccioná presentación --</option>';
+
+    if (!presentaciones || presentaciones.length === 0) {
+        presWrapper.style.display = 'none';
+        presHidden.value = '';
+        cantEl.dataset.stock = stockTotal;
+        return;
+    }
+
+    presentaciones.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value            = p.id;
+        opt.textContent      = `${p.nombre} (x${p.cantidad_unidades})`;
+        opt.dataset.precio   = p.precio;
+        opt.dataset.unidades = p.cantidad_unidades;
+        presSelect.appendChild(opt);
+    });
+
+    presWrapper.style.display = 'block';
+
+    presSelect.onchange = () => {
+        const opt = presSelect.options[presSelect.selectedIndex];
+        presHidden.value = presSelect.value;
+
+        if (presSelect.value) {
+            const uniPorPres     = parseInt(opt.dataset.unidades || 1);
+            cantEl.dataset.stock = Math.floor(stockTotal / uniPorPres);
+            precioBadge.textContent  = `💲 $${Number(opt.dataset.precio).toLocaleString('es-AR')}`;
+            precioBadge.style.display = 'inline-block';
+        } else {
+            cantEl.dataset.stock      = stockTotal;
+            presHidden.value          = '';
+            precioBadge.style.display = 'none';
+        }
+        validarCant(prodItem);
+        actualizarBoton();
+    };
+}
+
 function iniciarProd(item) {
     const inputEl    = item.querySelector('.prod-input');
     const dropdownEl = item.querySelector('.prod-dropdown');
     const hiddenEl   = item.querySelector('.prod-id');
     const cantEl     = item.querySelector('.cant-input');
-    const stockEl    = item.querySelector('.stock-msg');
 
     if (inputEl._ok) return;
     inputEl._ok = true;
@@ -532,21 +568,24 @@ function iniciarProd(item) {
         renderItem: (it, q) => `
             <div class="ac-nombre">${resaltar(it.nombre, q)}</div>
             <div class="ac-badges">
-                <span class="ac-badge">💲 $${Number(it.precio).toLocaleString('es-AR')}</span>
-                <span class="ac-badge ${it.stock === 0 ? 'sin-stock' : ''}">
-                    ${it.stock === 0 ? '❌' : '📦'} Stock: ${it.stock}
-                </span>
+                ${it.presentaciones && it.presentaciones.length
+                    ? it.presentaciones.map(p =>
+                        `<span class="ac-badge">📦 ${p.nombre} — $${Number(p.precio).toLocaleString('es-AR')}</span>`
+                      ).join('')
+                    : `<span class="ac-badge ${it.stock === 0 ? 'sin-stock' : ''}">
+                           ${it.stock === 0 ? '❌ Sin stock' : '📦 Stock: ' + it.stock}
+                       </span>`
+                }
             </div>
         `,
         onSelect: it => {
-            cantEl.dataset.stock = it.stock;
+            cargarPresentaciones(item, it.presentaciones || [], it.stock);
             validarCant(item);
             actualizarBoton();
         }
     });
 
     item._ac = ac;
-
     cantEl.addEventListener('input', () => { validarCant(item); actualizarBoton(); });
 }
 
@@ -557,43 +596,60 @@ function validarCant(prodItem) {
     const cant    = parseInt(cantEl.value) || 0;
 
     stockEl.className = 'stock-msg';
-    cantEl.classList.remove('error', 'success');
+    cantEl.classList.remove('advertencia', 'success');
 
     if (stock < 0 || !cant) return;
 
-    if (cant > stock) {
-        cantEl.classList.add('error');
-        stockEl.textContent = `Solo hay ${stock} disponibles`;
-        stockEl.classList.add('error');
+    if (cant > stock && stock >= 0) {
+        // ✅ Solo avisa, no bloquea
+        cantEl.classList.add('advertencia');
+        stockEl.textContent = `⚠️ Stock insuficiente (hay ${stock}), se creará igual`;
+        stockEl.classList.add('advertencia');
     } else {
         cantEl.classList.add('success');
-        stockEl.textContent = `${stock} disponibles`;
+        stockEl.textContent = `✓ ${stock} disponibles`;
         stockEl.classList.add('ok');
     }
 }
 
 iniciarProd(document.querySelector('.producto-item'));
 
-
-// ══════════════════════════════════════════════════
-//  AGREGAR / ELIMINAR PRODUCTOS
-// ══════════════════════════════════════════════════
 document.getElementById('btn-agregar').addEventListener('click', () => {
     const cont  = document.getElementById('productos-container');
-    const base  = cont.querySelector('.producto-item');
-    const nuevo = base.cloneNode(true);
-
-    nuevo.querySelectorAll('input').forEach(el => {
-        el.value = '';
-        el.className = el.className.replace(/valido|invalido|error|success/g, '').trim();
-        delete el.dataset.stock;
-        el._ok = false;
-    });
-    nuevo.querySelector('.btn-remove').disabled = false;
-    nuevo.querySelector('.stock-msg').className = 'stock-msg';
-    nuevo.querySelector('.campo-error')?.classList.remove('show');
-    nuevo._ac = null;
-
+    const nuevo = document.createElement('div');
+    nuevo.className = 'producto-item';
+    nuevo.innerHTML = `
+        <input type="hidden" name="productos" class="prod-id">
+        <input type="hidden" name="presentaciones" class="pres-id">
+        <div class="prod-grid-top">
+            <div>
+                <div class="autocomplete-wrapper">
+                    <span class="ac-icon">📦</span>
+                    <input type="text" class="autocomplete-input prod-input"
+                           placeholder="Buscá un producto..." autocomplete="off">
+                    <span class="ac-check">✓</span>
+                    <div class="autocomplete-dropdown prod-dropdown"></div>
+                </div>
+                <div class="campo-error prod-error">Seleccioná un producto de la lista</div>
+            </div>
+            <button type="button" class="btn-remove remove-prod">✕</button>
+        </div>
+        <div class="prod-grid-bottom">
+            <div class="pres-wrapper" style="display:none;">
+                <span class="pres-label">📦 Presentación</span>
+                <select class="pres-select">
+                    <option value="">-- Seleccioná presentación --</option>
+                </select>
+                <div class="precio-badge" style="display:none;"></div>
+            </div>
+            <div class="cant-wrapper">
+                <span class="cant-label">Cantidad</span>
+                <input type="number" name="cantidades" class="form-control cant-input"
+                       placeholder="0" min="1">
+                <div class="stock-msg"></div>
+            </div>
+        </div>
+    `;
     cont.appendChild(nuevo);
     nuevo.style.cssText = 'opacity:0;transform:translateY(-8px)';
     requestAnimationFrame(() => {
@@ -601,7 +657,6 @@ document.getElementById('btn-agregar').addEventListener('click', () => {
         nuevo.style.opacity = '1';
         nuevo.style.transform = 'translateY(0)';
     });
-
     iniciarProd(nuevo);
 });
 
@@ -612,45 +667,39 @@ document.getElementById('productos-container').addEventListener('click', e => {
     setTimeout(() => { item.remove(); actualizarBoton(); }, 200);
 });
 
-// ══════════════════════════════════════════════════
-//  VALIDACIÓN AL ENVIAR
-// ══════════════════════════════════════════════════
 document.getElementById('form-venta').addEventListener('submit', e => {
     let ok = true;
 
-    // Validar cliente
     if (!acCliente.esValido()) {
         acCliente.mostrarError();
         ok = false;
     }
 
-    // Validar productos
     const prodItems = document.querySelectorAll('.producto-item');
     let hayUno = false;
 
     prodItems.forEach(item => {
-        const ac      = item._ac;
-        const hidden  = item.querySelector('.prod-id');
-        const cantEl  = item.querySelector('.cant-input');
-        const stock   = parseInt(cantEl.dataset.stock ?? -1);
-        const cant    = parseInt(cantEl.value) || 0;
+        const ac     = item._ac;
+        const hidden = item.querySelector('.prod-id');
+        const cantEl = item.querySelector('.cant-input');
+        const presEl = item.querySelector('.pres-select');
+        const cant   = parseInt(cantEl.value) || 0;
+
+        if (hidden.value && presEl && presEl.options.length > 1 && !presEl.value) {
+            presEl.classList.add('error');
+            ok = false;
+        }
 
         if (!hidden.value) {
-            // Producto no seleccionado de la lista
             if (ac) ac.mostrarError();
             ok = false;
         } else {
             hayUno = true;
-
-            // Cantidad vacía
             if (!cant) {
-                cantEl.classList.add('error');
+                cantEl.classList.add('advertencia');
                 ok = false;
             }
-            // Stock insuficiente
-            else if (stock >= 0 && cant > stock) {
-                ok = false;
-            }
+            // ✅ No valida stock al enviar
         }
     });
 
@@ -658,9 +707,8 @@ document.getElementById('form-venta').addEventListener('submit', e => {
 
     if (!ok) {
         e.preventDefault();
-        // Scroll al primer error visible
         const primer = document.querySelector(
-            '.autocomplete-input.invalido, .campo-error.show, .cant-input.error'
+            '.autocomplete-input.invalido, .campo-error.show, .cant-input.advertencia, .pres-select.error'
         );
         primer?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }

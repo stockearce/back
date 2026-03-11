@@ -25,7 +25,7 @@ from openpyxl.styles import Font, Alignment, PatternFill
 # Local Models
 from .models import (
     Producto, TipoProducto, Cliente, Ventas,
-    DetalleVenta, ImagenProducto, Chofer
+    DetalleVenta, ImagenProducto, Chofer, PresentacionProducto
 )
 
 
@@ -125,16 +125,24 @@ def crear_tipo(request):
     return render(request, 'crear_tipo.html')
 
 
+PRESENTACIONES_OPCIONES = [
+    {'nombre': 'Unidad',   'unidades': 1},
+    {'nombre': 'Pack x6',  'unidades': 6},
+    {'nombre': 'Pack x8',  'unidades': 8},
+    {'nombre': 'Caja x12', 'unidades': 12},
+    
+]
+
 @login_required
 def crear_producto(request):
     tipos = TipoProducto.objects.all()
 
     if request.method == 'POST':
-        nombre = request.POST.get('nombre')
-        tipo_id = request.POST.get('tipo')
-        cantidad = request.POST.get('cantidad')
-        valor_compra = request.POST.get('valor_compra')
-        valor = request.POST.get('valor')
+        nombre        = request.POST.get('nombre')
+        tipo_id       = request.POST.get('tipo')
+        cantidad      = request.POST.get('cantidad')
+        valor_compra  = request.POST.get('valor_compra', '0')
+        valor         = request.POST.get('valor', '0')
         umbral_alerta = request.POST.get('umbral_alerta', 5)
 
         try:
@@ -144,7 +152,7 @@ def crear_producto(request):
 
         if nombre and tipo_id:
             tipo = TipoProducto.objects.get(id=tipo_id)
-            Producto.objects.create(
+            producto = Producto.objects.create(
                 nombre=nombre,
                 tipo=tipo,
                 cantidad=cantidad,
@@ -152,10 +160,32 @@ def crear_producto(request):
                 valor=valor,
                 umbral_alerta=umbral_alerta
             )
+
+            # Guardar presentaciones
+            nombres_pres   = request.POST.getlist('pres_nombre')
+            unidades_pres  = request.POST.getlist('pres_unidades')
+            precios_venta  = request.POST.getlist('pres_precio_venta')
+            precios_compra = request.POST.getlist('pres_precio_compra')
+
+            for nom, uni, pv, pc in zip(nombres_pres, unidades_pres, precios_venta, precios_compra):
+                if nom and uni and pv:
+                    try:
+                        PresentacionProducto.objects.create(
+                            producto=producto,
+                            nombre=nom.strip(),
+                            cantidad_unidades=int(uni),
+                            precio_venta=Decimal(pv),
+                            precio_compra=Decimal(pc) if pc else Decimal('0'),
+                        )
+                    except Exception:
+                        pass
+
             return redirect('lista_productos')
 
-    return render(request, 'crear_producto.html', {'tipos': tipos})
-
+    return render(request, 'crear_producto.html', {
+        'tipos': tipos,
+        'presentaciones_opciones': PRESENTACIONES_OPCIONES,  # 🆕
+    })
 
 @login_required
 def actualizar_stock(request, producto_id):
@@ -219,14 +249,54 @@ def editar_producto(request, producto_id):
             return redirect('editar_producto', producto_id=producto.id)
 
         producto.save()
+
+        ids_existentes      = request.POST.getlist('pres_id')
+        nombres_pres        = request.POST.getlist('pres_nombre')
+        unidades_pres       = request.POST.getlist('pres_unidades')
+        precios_venta_pres  = request.POST.getlist('pres_precio_venta')
+        precios_compra_pres = request.POST.getlist('pres_precio_compra')
+
+        ids_enviados = []
+
+        for i, (pres_id, nom, uni, pv, pc) in enumerate(zip(
+            ids_existentes, nombres_pres, unidades_pres,
+            precios_venta_pres, precios_compra_pres
+        )):
+            if not nom.strip() or not uni or not pv:
+                continue
+            try:
+                if pres_id:
+                    pres = PresentacionProducto.objects.get(id=pres_id, producto=producto)
+                    pres.nombre            = nom.strip()
+                    pres.cantidad_unidades = int(uni)
+                    pres.precio_venta      = Decimal(pv)
+                    pres.precio_compra     = Decimal(pc) if pc else Decimal('0')
+                    pres.save()
+                    ids_enviados.append(pres.id)
+                else:
+                    nueva = PresentacionProducto.objects.create(
+                        producto=producto,
+                        nombre=nom.strip(),
+                        cantidad_unidades=int(uni),
+                        precio_venta=Decimal(pv),
+                        precio_compra=Decimal(pc) if pc else Decimal('0'),
+                    )
+                    ids_enviados.append(nueva.id)
+            except Exception:
+                pass
+
+        producto.presentaciones.exclude(id__in=ids_enviados).delete()
+
         messages.success(request, f'Producto "{producto.nombre}" actualizado.')
         return redirect('lista_productos')
 
+    presentaciones = producto.presentaciones.all()
     return render(request, 'editar_producto.html', {
-        'producto': producto,
-        'tipos': tipos,
+        'producto':               producto,
+        'tipos':                  tipos,
+        'presentaciones':         presentaciones,
+        'presentaciones_opciones': PRESENTACIONES_OPCIONES,
     })
-
 
 @login_required
 def panel_alertas(request):
@@ -332,15 +402,15 @@ def editar_cliente(request, cliente_id):
 @login_required
 def crear_venta(request):
     if request.method == 'POST':
-        cliente_id    = request.POST.get('cliente')
-        notas         = request.POST.get('notas')
-        productos_ids = request.POST.getlist('productos')
-        cantidades    = request.POST.getlist('cantidades')
+        cliente_id       = request.POST.get('cliente')
+        notas            = request.POST.get('notas')
+        productos_ids    = request.POST.getlist('productos')
+        cantidades       = request.POST.getlist('cantidades')
+        presentacion_ids = request.POST.getlist('presentaciones')
 
         if cliente_id and productos_ids:
             try:
                 cliente = Cliente.objects.get(id=cliente_id)
-
                 venta = Ventas.objects.create(
                     cliente=cliente,
                     estado='pendiente',
@@ -351,16 +421,28 @@ def crear_venta(request):
 
                 total_venta = 0
 
-                for prod_id, cant in zip(productos_ids, cantidades):
+                for prod_id, cant, pres_id in zip(productos_ids, cantidades, presentacion_ids):
                     if prod_id and cant:
-                        producto = Producto.objects.get(id=prod_id)
-                        cantidad = int(cant)
-                        precio   = producto.valor
+                        producto     = Producto.objects.get(id=prod_id)
+                        cantidad     = int(cant)
+                        presentacion = None
+                        precio       = producto.valor  # fallback
+
+                        if pres_id:
+                            try:
+                                presentacion = PresentacionProducto.objects.get(
+                                    id=pres_id, producto=producto
+                                )
+                                precio = presentacion.precio_venta
+                            except PresentacionProducto.DoesNotExist:
+                                pass
+
                         subtotal = precio * cantidad
 
                         DetalleVenta.objects.create(
                             venta=venta,
                             producto=producto,
+                            presentacion=presentacion,
                             cantidad=cantidad,
                             precio_unitario=precio,
                             subtotal=subtotal
@@ -370,24 +452,14 @@ def crear_venta(request):
 
                 venta.valor_total = total_venta
                 venta.save(update_fields=['valor_total'])
-
-                messages.success(
-                    request,
-                    f'✅ Venta #{venta.id} creada por ${total_venta:.2f}. Estado: Pendiente.'
-                )
+                messages.success(request, f'✅ Venta #{venta.id} creada por ${total_venta:.2f}')
                 return redirect('lista_ventas')
 
             except Exception as e:
                 messages.error(request, f'Error al crear venta: {str(e)}')
-        else:
-            messages.error(request, 'Seleccione un cliente y al menos un producto')
 
-    productos = Producto.objects.all().order_by('nombre')
-
-    return render(request, 'ventas/crear_venta.html', {
-        'productos': productos,
-    })
-
+    productos = Producto.objects.prefetch_related('presentaciones').all().order_by('nombre')
+    return render(request, 'ventas/crear_venta.html', {'productos': productos})
 
 @login_required
 def buscar_clientes(request):
@@ -421,19 +493,24 @@ def buscar_productos(request):
     if len(q) < 1:
         return JsonResponse({'resultados': []})
 
-    productos = Producto.objects.filter(
-        nombre__icontains=q
-    ).values('id', 'nombre', 'valor', 'cantidad')[:10]
+    resultados = []
+    for p in Producto.objects.filter(nombre__icontains=q).prefetch_related('presentaciones')[:10]:
+        presentaciones = [
+            {
+                'id': pr.id,
+                'nombre': pr.nombre,
+                'cantidad_unidades': pr.cantidad_unidades,
+                'precio': float(pr.precio_venta),
+            }
+            for pr in p.presentaciones.filter(activo=True)
+        ]
+        resultados.append({
+            'id': p.id,
+            'nombre': p.nombre,
+            'stock': p.cantidad,
+            'presentaciones': presentaciones,
+        })
 
-    resultados = [
-        {
-            'id': p['id'],
-            'nombre': p['nombre'],
-            'precio': float(p['valor']),
-            'stock': p['cantidad']
-        }
-        for p in productos
-    ]
     return JsonResponse({'resultados': resultados})
 
 
@@ -471,7 +548,7 @@ def lista_ventas(request):
 @login_required
 def detalle_venta(request, venta_id):
     venta    = get_object_or_404(Ventas, id=venta_id)
-    detalles = venta.detalles.select_related('producto').all()
+    detalles = venta.detalles.select_related('producto', 'presentacion').all()
     choferes = Chofer.objects.filter(activo=True).order_by('nombre_completo')
 
     return render(request, 'ventas/detalle_venta.html', {
@@ -507,8 +584,8 @@ def actualizar_estado_venta(request, venta_id):
         # Cancelar venta confirmada → devolver stock
         if nuevo_estado == 'cancelada' and venta.estado == 'confirmada':
             try:
-                for detalle in venta.detalles.select_related('producto').all():
-                    detalle.producto.cantidad = F('cantidad') + detalle.cantidad
+                for detalle in venta.detalles.select_related('producto', 'presentacion').all():
+                    detalle.producto.cantidad = F('cantidad') + detalle.unidades_totales_descontadas
                     detalle.producto.save()
                     detalle.producto.refresh_from_db()
 
@@ -521,13 +598,13 @@ def actualizar_estado_venta(request, venta_id):
         # Volver a pendiente desde confirmada → devolver stock
         elif nuevo_estado == 'pendiente' and venta.estado == 'confirmada':
             try:
-                for detalle in venta.detalles.select_related('producto').all():
-                    detalle.producto.cantidad = F('cantidad') + detalle.cantidad
+                for detalle in venta.detalles.select_related('producto', 'presentacion').all():
+                    detalle.producto.cantidad = F('cantidad') + detalle.unidades_totales_descontadas
                     detalle.producto.save()
                     detalle.producto.refresh_from_db()
 
-                venta.estado  = nuevo_estado
-                venta.chofer  = None
+                venta.estado = nuevo_estado
+                venta.chofer = None
                 venta.save()
                 messages.success(request, '✅ Venta vuelta a pendiente y stock devuelto')
             except Exception as e:
@@ -544,7 +621,6 @@ def actualizar_estado_venta(request, venta_id):
         'venta': venta,
         'estados': Ventas.ESTADO_CHOICES
     })
-
 
 # ==================================
 # CONSULTAR VENTAS (REPORTES)
@@ -564,7 +640,8 @@ def consultar_ventas(request):
         ventas = Ventas.objects.select_related(
             'cliente', 'chofer', 'usuario_creador'
         ).prefetch_related(
-            'detalles__producto'
+            'detalles__producto',
+            'detalles__presentacion'  # 🆕
         ).filter(
             estado='entregada',
             fecha_envio__gte=fecha_desde_dt,
@@ -606,13 +683,13 @@ def exportar_ventas_excel(ventas, fecha_desde, fecha_hasta):
     header_font = Font(color="FFFFFF", bold=True, size=12)
     title_font  = Font(bold=True, size=14)
 
-    ws.merge_cells('A1:K1')
+    ws.merge_cells('A1:M1')
     ws['A1'] = 'REPORTE DE VENTAS ENTREGADAS'
     ws['A1'].font      = title_font
     ws['A1'].alignment = Alignment(horizontal='center')
 
     if fecha_desde or fecha_hasta:
-        ws.merge_cells('A2:K2')
+        ws.merge_cells('A2:M2')
         ws['A2'] = f"Periodo: {fecha_desde or 'Inicio'} hasta {fecha_hasta or 'Hoy'}"
         ws['A2'].alignment = Alignment(horizontal='center')
         fila_inicio = 4
@@ -621,7 +698,10 @@ def exportar_ventas_excel(ventas, fecha_desde, fecha_hasta):
 
     headers = [
         'Fecha Envío', 'Venta #', 'Cliente', 'Vendedor', 'Producto',
-        'Cantidad', 'Precio Compra Unit.', 'Precio Venta Unit.',
+        'Presentación',           # 🆕
+        'Cant. Presentaciones',   # 🆕
+        'Unidades Reales',        # 🆕
+        'Precio Compra Unit.', 'Precio Venta Unit.',
         'Costo Total', 'Venta Total', 'Ganancia'
     ]
     for col, header in enumerate(headers, start=1):
@@ -638,26 +718,35 @@ def exportar_ventas_excel(ventas, fecha_desde, fecha_hasta):
 
     for venta in ventas:
         for detalle in venta.detalles.all():
-            costo_unit  = detalle.producto.valor_compra or 0
-            precio_unit = detalle.precio_unitario
-            cantidad    = detalle.cantidad
-            costo_total = costo_unit * cantidad
-            venta_total = detalle.subtotal
-            ganancia    = venta_total - costo_total
+            costo_unit        = detalle.producto.valor_compra or 0
+            precio_unit       = detalle.precio_unitario
+            cant_presentacion = detalle.cantidad
+            unidades_reales   = detalle.unidades_totales_descontadas
+            costo_total       = costo_unit * unidades_reales
+            venta_total       = detalle.subtotal
+            ganancia          = venta_total - costo_total
+
+            nombre_presentacion = (
+                detalle.presentacion.nombre
+                if detalle.presentacion
+                else 'Unidad'
+            )
 
             ws.cell(row=fila, column=1).value  = venta.fecha_envio.strftime('%d/%m/%Y %H:%M') if venta.fecha_envio else 'N/A'
             ws.cell(row=fila, column=2).value  = venta.id
             ws.cell(row=fila, column=3).value  = venta.cliente.nombre_completo
             ws.cell(row=fila, column=4).value  = venta.usuario_creador.username if venta.usuario_creador else 'N/A'
             ws.cell(row=fila, column=5).value  = detalle.producto.nombre
-            ws.cell(row=fila, column=6).value  = cantidad
-            ws.cell(row=fila, column=7).value  = float(costo_unit)
-            ws.cell(row=fila, column=8).value  = float(precio_unit)
-            ws.cell(row=fila, column=9).value  = float(costo_total)
-            ws.cell(row=fila, column=10).value = float(venta_total)
-            ws.cell(row=fila, column=11).value = float(ganancia)
+            ws.cell(row=fila, column=6).value  = nombre_presentacion
+            ws.cell(row=fila, column=7).value  = cant_presentacion
+            ws.cell(row=fila, column=8).value  = unidades_reales
+            ws.cell(row=fila, column=9).value  = float(costo_unit)
+            ws.cell(row=fila, column=10).value = float(precio_unit)
+            ws.cell(row=fila, column=11).value = float(costo_total)
+            ws.cell(row=fila, column=12).value = float(venta_total)
+            ws.cell(row=fila, column=13).value = float(ganancia)
 
-            for col in [7, 8, 9, 10, 11]:
+            for col in [9, 10, 11, 12, 13]:
                 ws.cell(row=fila, column=col).number_format = '$#,##0.00'
 
             total_costo    += costo_total
@@ -666,20 +755,20 @@ def exportar_ventas_excel(ventas, fecha_desde, fecha_hasta):
             fila += 1
 
     fila += 1
-    ws.merge_cells(f'A{fila}:H{fila}')
+    ws.merge_cells(f'A{fila}:J{fila}')
     ws.cell(row=fila, column=1).value = 'TOTALES'
     ws.cell(row=fila, column=1).font  = Font(bold=True, size=12)
-    ws.cell(row=fila, column=9).value  = float(total_costo)
-    ws.cell(row=fila, column=10).value = float(total_venta)
-    ws.cell(row=fila, column=11).value = float(total_ganancia)
+    ws.cell(row=fila, column=11).value = float(total_costo)
+    ws.cell(row=fila, column=12).value = float(total_venta)
+    ws.cell(row=fila, column=13).value = float(total_ganancia)
 
-    for col in [9, 10, 11]:
+    for col in [11, 12, 13]:
         cell               = ws.cell(row=fila, column=col)
         cell.font          = Font(bold=True, size=12)
         cell.number_format = '$#,##0.00'
         cell.fill          = PatternFill(start_color="D9E1F2", end_color="D9E1F2", fill_type="solid")
 
-    for letra, ancho in zip('ABCDEFGHIJK', [18, 10, 25, 15, 30, 10, 18, 18, 15, 15, 15]):
+    for letra, ancho in zip('ABCDEFGHIJKLM', [18, 10, 25, 15, 30, 15, 12, 12, 18, 18, 15, 15, 15]):
         ws.column_dimensions[letra].width = ancho
 
     response = HttpResponse(
@@ -689,8 +778,6 @@ def exportar_ventas_excel(ventas, fecha_desde, fecha_hasta):
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     wb.save(response)
     return response
-
-
 # ==================================
 # CHOFERES
 # ==================================
@@ -749,6 +836,10 @@ def asignar_chofer_venta(request, venta_id):
 
     if request.method == 'POST':
         chofer_id = request.POST.get('chofer')
+        print(f"=== ASIGNAR CHOFER ===")
+        print(f"venta_id: {venta_id}")
+        print(f"chofer_id: {chofer_id}")
+        print(f"estado actual: {venta.estado}")
 
         if not chofer_id:
             messages.error(request, "Debes seleccionar un chofer")
@@ -760,36 +851,26 @@ def asignar_chofer_venta(request, venta_id):
             messages.error(request, "❌ El chofer no existe o no está activo")
             return redirect('detalle_venta', venta_id=venta.id)
 
-        # Descontar stock si la venta está pendiente
         if venta.estado == 'pendiente':
             try:
-                detalles = venta.detalles.select_related('producto').all()
-
+                detalles = venta.detalles.select_related('producto', 'presentacion').all()
                 for detalle in detalles:
-                    if detalle.producto.cantidad < detalle.cantidad:
-                        messages.error(
-                            request,
-                            f"❌ Stock insuficiente de '{detalle.producto.nombre}'. "
-                            f"Disponible: {detalle.producto.cantidad}, Necesario: {detalle.cantidad}"
-                        )
-                        return redirect('detalle_venta', venta_id=venta.id)
-
-                for detalle in detalles:
-                    detalle.producto.cantidad = F('cantidad') - detalle.cantidad
+                    detalle.producto.cantidad = F('cantidad') - detalle.unidades_totales_descontadas
                     detalle.producto.save()
                     detalle.producto.refresh_from_db()
-
                 messages.success(request, "✅ Stock descontado correctamente")
-
             except Exception as e:
+                print(f"ERROR al descontar stock: {str(e)}")
                 messages.error(request, f"❌ Error al descontar stock: {str(e)}")
                 return redirect('detalle_venta', venta_id=venta.id)
 
+        print(f"Asignando chofer {chofer.nombre_completo} y cambiando estado a confirmada")
         venta.chofer = chofer
         venta.estado = 'confirmada'
 
         fecha = request.POST.get('fecha_envio_programada')
         hora  = request.POST.get('hora_envio_programada')
+        print(f"fecha: {fecha}, hora: {hora}")
 
         if fecha:
             venta.fecha_envio_programada = fecha
@@ -797,6 +878,7 @@ def asignar_chofer_venta(request, venta_id):
             venta.hora_envio_programada = hora
 
         venta.save()
+        print(f"Venta guardada. Estado nuevo: {venta.estado}")
 
         messages.success(request, f"✅ Venta #{venta.id} confirmada y asignada a {chofer.nombre_completo}")
         return redirect('detalle_venta', venta_id=venta.id)
@@ -806,7 +888,6 @@ def asignar_chofer_venta(request, venta_id):
         'venta': venta,
         'choferes': choferes,
     })
-
 
 @login_required
 def asignar_envios_pendientes(request):
@@ -902,7 +983,7 @@ def chofer_detalle_venta_confirmada(request, venta_id):
         return redirect('acceso_chofer')
 
     venta    = get_object_or_404(Ventas, id=venta_id, chofer_id=chofer_id)
-    detalles = venta.detalles.select_related('producto').all()
+    detalles = venta.detalles.select_related('producto', 'presentacion').all()
 
     if request.method == 'POST':
 
